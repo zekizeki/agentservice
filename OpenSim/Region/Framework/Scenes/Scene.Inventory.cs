@@ -143,6 +143,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 AddInventoryItem(remoteClient.AgentId, item);
                 remoteClient.SendInventoryItemCreateUpdate(item, 0);
+                // [rob] for inventory reflector
+                EventManager.TriggerOnNewInventoryItemCreated(item);
             }
             else
             {
@@ -199,6 +201,8 @@ namespace OpenSim.Region.Framework.Scenes
                         userInfo.UpdateItem(item);
 
                         // remoteClient.SendInventoryItemCreateUpdate(item);
+	                // [rob] for inventory reflector
+        	        EventManager.TriggerOnNewInventoryItemCreated(item);
                         return (asset.FullID);
                     }
                 }
@@ -855,6 +859,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 userInfo.AddItem(item);
                 remoteClient.SendInventoryItemCreateUpdate(item, callbackID);
+                // [rob] for inventory reflector
+                EventManager.TriggerOnNewInventoryItemCreated(item);
             }
             else
             {
@@ -2039,6 +2045,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (remoteClient != null && item.Owner == remoteClient.AgentId)
                 {
                     remoteClient.SendInventoryItemCreateUpdate(item, 0);
+                    // [rob] for inventory reflector
+                    EventManager.TriggerOnNewInventoryItemCreated(item);
                 }
                 else
                 {
@@ -2046,6 +2054,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (notifyUser != null)
                     {
                         notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
+	                // [rob] for inventory reflector
+         	       EventManager.TriggerOnNewInventoryItemCreated(item);
                     }
                 }
             }
@@ -2128,6 +2138,8 @@ namespace OpenSim.Region.Framework.Scenes
                         if (remoteClient != null)
                         {
                             remoteClient.SendInventoryItemCreateUpdate(item, 0);
+	                    // [rob] for inventory reflector
+            		    EventManager.TriggerOnNewInventoryItemCreated(item);
                         }
                     }
                 }
@@ -2188,6 +2200,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                     userInfo.AddItem(item);
                     remoteClient.SendInventoryItemCreateUpdate(item, 0);
+	           // [rob] for inventory reflector
+                   EventManager.TriggerOnNewInventoryItemCreated(item);
 
                     itemID = item.ID;
                     return item.AssetID;
