@@ -328,6 +328,10 @@ namespace OpenSim.Region.CoreModules.InterGrid
             //return null;
         }
 
+// -----------------------------------------------------------------------------------------------
+// 
+// -----------------------------------------------------------------------------------------------
+
         private OSD GenerateRezAvatarRequestMessage(string regionname)
         {
             Scene region = null;
@@ -395,6 +399,10 @@ namespace OpenSim.Region.CoreModules.InterGrid
             return responseMap;
         }
 
+	// -----------------------------------------------------------------------------------
+	//
+	// ------------------------------------------------------------------------------------
+
         // Using OpenSim.Framework.Communications.Capabilities.Caps here one time..   
         // so the long name is probably better then a using statement
         public void OnRegisterCaps(UUID agentID, Caps caps)
@@ -416,6 +424,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
         }
 
 // temp hack we need to pass these visual params from the agentservice
+
+
  private static byte[] GetDefaultVisualParams()
         {
             byte[] visualParams;
@@ -487,6 +497,10 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
             OGPState userState = GetOGPState(LocalAgentID);
            
+	    UUID secureSessionID = requestMap["secure_session_id"].AsUUID();
+	    uint circuitCode = (uint) requestMap["circuit_code"].AsInteger();
+	    
+
             userState.first_name = requestMap["first_name"].AsString();
             userState.last_name = requestMap["last_name"].AsString();
             userState.age_verified = requestMap["age_verified"].AsBoolean();
@@ -515,7 +529,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
            
         
             // (Rob)get the wearables sent
-            m_log.InfoFormat("[OGP] Avatar Wearables {0}",requestMap["avatar_wearables"]);
+            //m_log.InfoFormat("[OGP] Avatar Wearables {0}",requestMap["avatar_wearables"]);
             
             OSDArray wearables = (OSDArray)requestMap["avatar_wearables"];
 	        AvatarWearable[] wearableArray = new AvatarWearable[13];  
@@ -573,11 +587,13 @@ namespace OpenSim.Region.CoreModules.InterGrid
             agentData.BaseFolder = UUID.Zero;
             agentData.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             agentData.child = false;
-            agentData.circuitcode = (uint)(Util.RandomClass.Next());
+// dwl FIX TEST 1
+//          agentData.circuitcode = (uint)(Util.RandomClass.Next());
+	    agentData.circuitcode = circuitCode;
             agentData.firstname = FirstName;
             agentData.lastname = LastName;
-            agentData.SecureSessionID = UUID.Random();
-            agentData.SessionID = UUID.Random();
+            agentData.SecureSessionID = secureSessionID;
+            //agentData.SessionID = UUID.Random();
             agentData.startpos = new Vector3(128f, 128f, 100f);
 
             // Pre-Fill our region cache with information on the agent.
@@ -689,13 +705,15 @@ namespace OpenSim.Region.CoreModules.InterGrid
             m_log.Info("[OGP]: Debug 7");        
             if (homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID) == null && !GridMode)
             {
+                m_log.Info("[OGP]: Debug 7A");        
                 homeScene.CommsManager.UserAdminService.AddUser(
                     agentData.firstname, agentData.lastname, CreateRandomStr(7), "", 
                     homeScene.RegionInfo.RegionLocX, homeScene.RegionInfo.RegionLocY, agentData.AgentID);
                 
                 UserProfileData userProfile2 = homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID);
                 if (userProfile2 != null)
-                {
+                {   
+	            m_log.Info("[OGP]: Debug 7B");        
                     userProfile = userProfile2;
                     userProfile.AboutText = "OGP USER";
                     userProfile.FirstLifeAboutText = "OGP USER";
@@ -712,8 +730,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
             
             
             // Stick our data in the cache so the region will know something about us
-//          homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(agentData.AgentID, userProfile);
-            homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(userProfile); // DWL hackery may work
+//            homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(agentData.AgentID, userProfile);
+            homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(userProfile); // Did not help
             m_log.Info("[OGP]: Debug 9");        
             // Call 'new user' event handler
 //          homeScene.NewUserConnection(agentData); OLD Code DWL
@@ -727,6 +745,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 //           }
             //string raCap = string.Empty;
 // DWL HACKERY HERE
+	m_log.InfoFormat("[OGP]: DWL test 1 secure session ID {0} circuit {1}",secureSessionID,circuitCode);
 	if (!homeScene.NewUserConnection(agentData, out reason) )
            {
                 responseMap["connect"] = OSD.FromBoolean(false);
@@ -798,7 +817,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
         }
 
 
+	// -------------------------------------------------
         // Rez Avatar Method 
+	// -------------------------------------------------
 
         public OSD RezAvatarMethod(string path, OSD request)
         {
@@ -814,9 +835,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 OSDMap requestMap = (OSDMap)request;
 
                 // take these values to start.  There's a few more
-                UUID SecureSessionID=requestMap["secure_session_id"].AsUUID();
-                UUID SessionID = requestMap["session_id"].AsUUID();
-                int circuitcode = requestMap["circuit_code"].AsInteger();
+                UUID secureSessionID=requestMap["secure_session_id"].AsUUID();
+                UUID sessionID = requestMap["session_id"].AsUUID();
+                int circuitCode = requestMap["circuit_code"].AsInteger();
                 OSDArray Parameter = new OSDArray();
                 if (requestMap.ContainsKey("parameter"))
                 {
@@ -856,8 +877,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     }
                 }
                 //Update our Circuit data with the real values
-                userData.SecureSessionID = SecureSessionID;
-                userData.SessionID = SessionID;
+                userData.SecureSessionID = secureSessionID;
+                userData.SessionID = sessionID;
 
                 OGPState userState = GetOGPState(userData.AgentID);
 
@@ -881,14 +902,14 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
                     //Update the circuit data in the region so this user is authorized
                     homeScene.UpdateCircuitData(userData);
-                    homeScene.ChangeCircuitCode(userData.circuitcode,(uint)circuitcode);
+                    homeScene.ChangeCircuitCode(userData.circuitcode,(uint)circuitCode);
 
                     // Load state
                     
 
                     // Keep state changes
                     userState.first_name = requestMap["first_name"].AsString();
-                    userState.secure_session_id = requestMap["secure_session_id"].AsUUID();
+                    userState.secure_session_id = secureSessionID;
                     userState.age_verified = requestMap["age_verified"].AsBoolean();
                     userState.region_id = homeScene.RegionInfo.originRegionID; // replace 0000000 with our regionid
                     userState.transacted = requestMap["transacted"].AsBoolean();
@@ -948,9 +969,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     // DEPRECIATED
                     responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
 
-                    responseMap["session_id"] = OSD.FromUUID(SessionID);
-                    responseMap["secure_session_id"] = OSD.FromUUID(SecureSessionID);
-                    responseMap["circuit_code"] = OSD.FromInteger(circuitcode);
+                    responseMap["session_id"] = OSD.FromUUID(sessionID);
+                    responseMap["secure_session_id"] = OSD.FromUUID(secureSessionID);
+                    responseMap["circuit_code"] = OSD.FromInteger(circuitCode);
 
                     responseMap["position"] = PositionArray;
 
@@ -1510,6 +1531,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             }
             return returnstring;
         }
+
         // Temporary hack to allow teleporting to and from Vaak
         private static bool customXertificateValidation(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
         {
