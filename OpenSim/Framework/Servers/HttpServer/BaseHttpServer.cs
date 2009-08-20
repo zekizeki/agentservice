@@ -331,7 +331,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //  the request can be passed through to the other handlers. This is a low
                 //  probability event; if a request is matched it is normally expected to be
                 //  handled
-                //m_log.Debug("[BASE HTTP SERVER]: Handling Request" + request.RawUrl);
+                m_log.Info("[BASE HTTP SERVER]: Handling Request" + request.RawUrl);
                 IHttpAgentHandler agentHandler;
 
                 if (TryGetAgentHandler(request, response, out agentHandler))
@@ -349,7 +349,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 string path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
 
-                //m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
+                m_log.InfoFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
 
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
@@ -497,7 +497,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     case "application/xml":
                     case "application/json":
                     default:
-                        //m_log.Info("[Debug BASE HTTP SERVER]: in default handler");
+                        m_log.Info("[Debug BASE HTTP SERVER]: in default handler");
                         // Point of note..  the DoWeHaveA methods check for an EXACT path
                         //                        if (request.RawUrl.Contains("/CAPS/EQG"))
                         //                        {
@@ -518,7 +518,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             return;
                         }
 
-                        //m_log.Info("[Debug BASE HTTP SERVER]: Generic XMLRPC");
+                        m_log.Info("[Debug BASE HTTP SERVER]: Generic XMLRPC");
                         // generic login request.
                         HandleXmlRpcRequests(request, response);
 
