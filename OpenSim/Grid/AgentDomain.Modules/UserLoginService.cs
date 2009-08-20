@@ -88,6 +88,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
         private ActiveAgentState m_state_table = new ActiveAgentState();
 	private UserDataBaseService m_userDataBaseService; // DWL
         private IInterServiceInventoryServices m_interInventoryService;
+        private InventoryServiceBase m_inv;
 
 
 	// X.509 bypass stuff
@@ -110,6 +111,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
             m_defaultHomeY = m_config.DefaultY;
             m_userDataBaseService = dataBaseServer;
             m_interInventoryService = inventoryService;
+            m_inv = (InventoryServiceBase)inventoryService;
             m_regionProfileService = regionProfileService;
             ipHostPort = (m_config.HttpPort).ToString();
 	    setupHostNames();
@@ -972,7 +974,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
             contents.descendents = 0;
             reply.folders.Array.Add(contents);
             List<InventoryItemBase> itemList = null;
-//            itemList = m_interInventoryService.RequestFolderItems(invFetch.folder_id); // HERE DWL
+            itemList = m_inv.RequestFolderItems(invFetch.folder_id); // HERE DWL
             
             
             if (itemList != null)
@@ -1395,8 +1397,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             InventoryItemBase resolvedItem = OSDToInventoryItemBase(requestMap);
 			
 			// call the inventory service to add it 
-			//bool success = m_inventoryService.AddItem( resolvedItem);
-                        bool success = false; // DWL hack 
+			bool success = m_inv.AddItem( resolvedItem);
+                 //       bool success = false; // DWL hack 
             
             
             responseMap["success"] = OSD.FromBoolean(success);
@@ -1436,8 +1438,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             InventoryItemBase resolvedItem = OSDToInventoryItemBase(requestMap);
 			
 			// call the inventory service to add it 
-			//bool success = m_inventoryService.UpdateItem( resolvedItem);
-                        bool success = false; // DWL HACK
+			bool success = m_inv.UpdateItem( resolvedItem);
+                        //bool success = false; // DWL HACK
             
             
             responseMap["success"] = OSD.FromBoolean(success);
@@ -1549,8 +1551,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             
 			
 			// call the inventory service to add it 
-			// bool success = m_inventoryService.UpdateItem( resolvedItem);
-			bool success = false; // DWL HACK
+		 bool success = m_inv.UpdateItem( resolvedItem);
+		//	bool success = false; // DWL HACK
             
             
             responseMap["success"] = OSD.FromBoolean(success);
@@ -1587,8 +1589,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             InventoryItemBase resolvedItem = OSDToInventoryItemBase(requestMap);
 			
 			// call the inventory service to add it 
-			//bool success = m_inventoryService.DeleteItem( resolvedItem);
-			bool success = false;
+			bool success = m_inv.DeleteItem( resolvedItem);
+			//bool success = false;
             
             
             responseMap["success"] = OSD.FromBoolean(success);
@@ -1625,8 +1627,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             }
             
             InventoryFolderBase folder = OSDToInventoryFolderBase(requestMap);
-            // bool success = m_inventoryService.AddFolder( folder);
-            bool success = false; // DWL HACK
+            bool success = m_inv.AddFolder( folder);
+            //bool success = false; // DWL HACK
             responseMap["success"] = OSD.FromBoolean(success);
             return responseMap;        
         }
@@ -1659,8 +1661,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             }
             
             InventoryFolderBase folder = OSDToInventoryFolderBase(requestMap);
-            // bool success = m_inventoryService.UpdateFolder( folder);
-	    bool success = false; // DWL HACK
+             bool success = m_inv.UpdateFolder( folder);
+	   // bool success = false; // DWL HACK
             responseMap["success"] = OSD.FromBoolean(success);
             return responseMap;        
         }
@@ -1692,8 +1694,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
                         
             
             InventoryFolderBase folder = OSDToInventoryFolderBase(requestMap);
-//          bool success = m_inventoryService.MoveFolder( folder);
-            bool success = false; // DWL HACK
+            bool success = m_inv.MoveFolder( folder);
+            //bool success = false; // DWL HACK
             responseMap["success"] = OSD.FromBoolean(success);
             return responseMap;        
         }
@@ -1724,8 +1726,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             }
             
             InventoryFolderBase folder = OSDToInventoryFolderBase(requestMap);
-//            bool success = m_inventoryService.PurgeFolder( folder);
-            bool success = false; // DWL HACK
+            bool success = m_inv.PurgeFolder( folder);
+           // bool success = false; // DWL HACK
             responseMap["success"] = OSD.FromBoolean(success);
             return responseMap;        
         }
