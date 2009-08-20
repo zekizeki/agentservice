@@ -887,6 +887,7 @@ namespace OpenSim.Framework.Communications
         
         public virtual bool VerifySession(UUID userID, UUID sessionID)
         {
+	    m_log.Info("DWLAUTH02 - UserManagerBase");
             UserProfileData userProfile = GetUserProfile(userID);
 
             if (userProfile != null && userProfile.CurrentAgent != null)
