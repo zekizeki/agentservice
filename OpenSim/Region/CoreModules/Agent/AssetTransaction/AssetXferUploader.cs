@@ -240,6 +240,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                 userInfo.AddItem(item);
                 ourClient.SendInventoryItemCreateUpdate(item, callbackID);
+                
+                //[rob] trigger the inventory created event
+                m_userTransactions.Manager.MyScene.EventManager.TriggerOnNewInventoryItemCreated(item);
             }
             else
             {

@@ -229,8 +229,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
             
             CachedUserInfo userInfo
                 = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+            InventoryItemBase item = new InventoryItemBase();//= userInfo.RootFolder.FindItem(itemID);
             
+            item.ID = itemID;
             item.Folder = folderID;
             
             string cap = m_ogp.GetInventoryMoveCap(remoteClient.AgentId);
@@ -301,16 +302,16 @@ namespace OpenSim.Region.CoreModules.InterGrid
         
         
         void UpdateInventoryItem(
-        IClientAPI remoteClient, UUID transactionID, UUID itemID, InventoryItemBase itemUpd)
+        IClientAPI remoteClient, UUID transactionID, UUID itemID, InventoryItemBase item)
         {
-            m_log.Debug("[OGP InventoryReflector]: UpdateInventoryItem " + itemUpd.Name + " owner " + remoteClient.AgentId);
+            m_log.Debug("[OGP InventoryReflector]: UpdateInventoryItem " + item.Name + " owner " + remoteClient.AgentId);
             
             // we need to get the item from the cache to see whats changed.
             
-            CachedUserInfo userInfo
-                = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            InventoryItemBase item = itemUpd;
-            
+            //CachedUserInfo userInfo
+            //    = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            //InventoryItemBase item = itemUpd;
+            /*
             if (userInfo != null && userInfo.RootFolder != null)
             {
                 item = userInfo.RootFolder.FindItem(itemID);
@@ -346,7 +347,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     }
                 }
             }
-            
+            */
             // check that this is an OGP user before we reflect the event
             if(m_ogp.isOGPUser(remoteClient.AgentId))
             {
@@ -375,9 +376,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
             
             OSDArray wearablesOSD = new OSDArray();
             
-            CachedUserInfo userInfo
-                = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            InventoryItemBase item; 
+            //CachedUserInfo userInfo
+            //    = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            //InventoryItemBase item; 
             
             foreach(OpenSim.Framework.AvatarWearingArgs.Wearable wearable in wearing.NowWearing)
             {
@@ -386,8 +387,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 
                  m_log.Debug("[OGP InventoryReflector]: AvatarNowWearing itemid "+ wearable.ItemID + " type "+wearable.Type);
                  osdWearable["ItemID"] = OSD.FromUUID(wearable.ItemID);     
+                 //osdWearable["AssetID"] = OSD.FromUUID(UUID.Parse("00000000-0000-0000-0000-000000000000"));
                  // we need to get the AssetID of each item too
-                 item = userInfo.RootFolder.FindItem(wearable.ItemID);  
+                 /*item = userInfo.RootFolder.FindItem(wearable.ItemID);  
                  if(item !=null)  
                  {
                      osdWearable["AssetID"] = OSD.FromUUID(item.AssetID);
@@ -395,9 +397,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
                  else
                  {
                      AvatarAppearance def = new AvatarAppearance();
-                     //osdWearable["AssetID"] = OSD.FromUUID(UUID.Parse("00000000-0000-0000-0000-000000000000"));
+                     osdWearable["AssetID"] = OSD.FromUUID(UUID.Parse("00000000-0000-0000-0000-000000000000"));
                      osdWearable["AssetID"] = OSD.FromUUID(def.Wearables[wearable.Type].AssetID);
-                 }
+                 }*/
                  
                  wearablesOSD.Add(osdWearable);
             }
