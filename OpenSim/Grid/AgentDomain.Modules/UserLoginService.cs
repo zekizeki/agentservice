@@ -1397,8 +1397,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             InventoryItemBase resolvedItem = OSDToInventoryItemBase(requestMap);
 			
 			// call the inventory service to add it 
-			bool success = m_inv.AddItem( resolvedItem);
-                 //       bool success = false; // DWL hack 
+			//bool success = m_inventoryService.AddItem( resolvedItem);
+                        bool success = false; // DWL hack 
             
             
             responseMap["success"] = OSD.FromBoolean(success);
@@ -1438,8 +1438,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             InventoryItemBase resolvedItem = OSDToInventoryItemBase(requestMap);
 			
 			// call the inventory service to add it 
-			bool success = m_inv.UpdateItem( resolvedItem);
-                        //bool success = false; // DWL HACK
+			//bool success = m_inventoryService.UpdateItem( resolvedItem);
+                        bool success = false; // DWL HACK
             
             
             responseMap["success"] = OSD.FromBoolean(success);
@@ -1551,8 +1551,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             
 			
 			// call the inventory service to add it 
-		 bool success = m_inv.UpdateItem( resolvedItem);
-		//	bool success = false; // DWL HACK
+			// bool success = m_inventoryService.UpdateItem( resolvedItem);
+			bool success = false; // DWL HACK
             
             
             responseMap["success"] = OSD.FromBoolean(success);
@@ -1589,8 +1589,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             InventoryItemBase resolvedItem = OSDToInventoryItemBase(requestMap);
 			
 			// call the inventory service to add it 
-			bool success = m_inv.DeleteItem( resolvedItem);
-			//bool success = false;
+			//bool success = m_inventoryService.DeleteItem( resolvedItem);
+			bool success = false;
             
             
             responseMap["success"] = OSD.FromBoolean(success);
@@ -1627,8 +1627,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             }
             
             InventoryFolderBase folder = OSDToInventoryFolderBase(requestMap);
-            bool success = m_inv.AddFolder( folder);
-            //bool success = false; // DWL HACK
+            // bool success = m_inventoryService.AddFolder( folder);
+            bool success = false; // DWL HACK
             responseMap["success"] = OSD.FromBoolean(success);
             return responseMap;        
         }
@@ -1661,8 +1661,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             }
             
             InventoryFolderBase folder = OSDToInventoryFolderBase(requestMap);
-             bool success = m_inv.UpdateFolder( folder);
-	   // bool success = false; // DWL HACK
+            // bool success = m_inventoryService.UpdateFolder( folder);
+	    bool success = false; // DWL HACK
             responseMap["success"] = OSD.FromBoolean(success);
             return responseMap;        
         }
@@ -1694,8 +1694,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
                         
             
             InventoryFolderBase folder = OSDToInventoryFolderBase(requestMap);
-            bool success = m_inv.MoveFolder( folder);
-            //bool success = false; // DWL HACK
+//          bool success = m_inventoryService.MoveFolder( folder);
+            bool success = false; // DWL HACK
             responseMap["success"] = OSD.FromBoolean(success);
             return responseMap;        
         }
@@ -1726,8 +1726,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             }
             
             InventoryFolderBase folder = OSDToInventoryFolderBase(requestMap);
-            bool success = m_inv.PurgeFolder( folder);
-           // bool success = false; // DWL HACK
+//            bool success = m_inventoryService.PurgeFolder( folder);
+            bool success = false; // DWL HACK
             responseMap["success"] = OSD.FromBoolean(success);
             return responseMap;        
         }
