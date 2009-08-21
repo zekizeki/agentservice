@@ -138,8 +138,9 @@ namespace OpenSim.Region.Communications.OGS1
         
         public override bool VerifySession(UUID userID, UUID sessionID)
         {
-            m_log.DebugFormat("[OGS1 USER SERVICES]: Verifying user session for " + userID);
-            return true;//AuthClient.VerifySession(GetUserServerURL(userID), userID, sessionID);
+            m_log.DebugFormat("[OGS1 USER SERVICES]: Verifying user session for " + userID + "user server url is " +GetUserServerURL(userID) );
+            
+            return AuthClient.VerifySession(GetUserServerURL(userID), userID, sessionID);
         }  
     }
 }

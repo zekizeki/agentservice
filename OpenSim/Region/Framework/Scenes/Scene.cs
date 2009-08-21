@@ -2465,8 +2465,20 @@ namespace OpenSim.Region.Framework.Scenes
                 agent.AgentID, agent.circuitcode);
 
             reason = String.Empty;
-            if (!AuthenticateUser(agent, out reason))
-                return false;
+            
+            
+            IConfig ogpConfig = m_config.Configs["OpenGridProtocol"];
+            bool OGPEnabled = ogpConfig.GetBoolean("ogp_enabled", false);
+
+            if(OGPEnabled)
+            {
+            	m_log.Info("OGP is enabled, bypassing auth check with the user service");
+            }
+            else
+            {
+            	if (!AuthenticateUser(agent, out reason))
+                	return false;
+            }
 
             if (!AuthorizeUser(agent, out reason))
                 return false;
