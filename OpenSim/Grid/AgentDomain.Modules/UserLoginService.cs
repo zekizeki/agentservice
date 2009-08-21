@@ -1399,11 +1399,15 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             }
             
             InventoryItemBase resolvedItem = OSDToInventoryItemBase(requestMap);
+            
+            if(String.IsNullOrEmpty(resolvedItem.CreatorId) || resolvedItem.CreatorId.Equals(UUID.Zero.ToString())  )
+            {
+            	resolvedItem.CreatorId = agentUUID.ToString();
+            	m_log.Info("[AGENT DOMAIN]: createInventory, CreatorId not set setting to " + agentUUID.ToString());	
+            }
 			
 			// call the inventory service to add it 
-			bool success = m_inventoryService.AddItem( resolvedItem);
-            //            bool success = false; // DWL hack 
-            
+			bool success = m_inventoryService.AddItem( resolvedItem);            
             
             responseMap["success"] = OSD.FromBoolean(success);
             return responseMap;
@@ -1439,11 +1443,37 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
                 return responseMap;
             }
             
-            InventoryItemBase resolvedItem = OSDToInventoryItemBase(requestMap);
+            InventoryItemBase itemUpd = OSDToInventoryItemBase(requestMap);
+            
+            // we need to get the item from inventory as the full item details do not get passed to us in the cap
+            InventoryItemBase item = m_inventoryService.GetInventoryItem(itemUpd.ID);
+            if (item != null)
+            {
+            	item.Name = itemUpd.Name;
+                item.Description = itemUpd.Description;
+                item.NextPermissions = itemUpd.NextPermissions;
+                item.CurrentPermissions |= 8; // Slam!
+                item.EveryOnePermissions = itemUpd.EveryOnePermissions;
+                item.GroupPermissions = itemUpd.GroupPermissions;
+
+                item.GroupID = itemUpd.GroupID;
+                item.GroupOwned = itemUpd.GroupOwned;
+                item.CreationDate = itemUpd.CreationDate;
+                // The client sends zero if its newly created?
+
+                if (itemUpd.CreationDate == 0)
+                    item.CreationDate = Util.UnixTimeSinceEpoch();
+                else
+                    item.CreationDate = itemUpd.CreationDate;
+
+                item.InvType = itemUpd.InvType;
+                item.SalePrice = itemUpd.SalePrice;
+            	item.SaleType = itemUpd.SaleType;
+                item.Flags = itemUpd.Flags;
+            }
 			
 			// call the inventory service to add it 
-			bool success = m_inventoryService.UpdateItem( resolvedItem);
-                       // bool success = false; // DWL HACK
+			bool success = m_inventoryService.UpdateItem( item);
             
             
             responseMap["success"] = OSD.FromBoolean(success);
@@ -1470,7 +1500,7 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             } 
             
             UUID agentUUID = m_uuid_table.getAgentUUIDforCap(pathSegments[4]); 
-            m_log.InfoFormat("[AGENT DOMAIN]: updateInventory  found agent UUID of {0}",agentUUID.ToString());
+            m_log.InfoFormat("[AGENT DOMAIN]: updateWearables  found agent UUID of {0}",agentUUID.ToString());
             if (agentUUID == UUID.Zero)
              {
                 m_log.Warn("[AGENT DOMAIN]: Invalid cap");
@@ -1480,9 +1510,20 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             OSDArray wearables = (OSDArray)requestMap["avatar_wearables"];
 	        AvatarWearable[] wearableArray = new AvatarWearable[13];  
             int count =0;
+            InventoryItemBase item;
             foreach (OSDMap wble in wearables)
             {
-                 AvatarWearable aWearable = new AvatarWearable(wble["ItemID"].AsUUID(), wble["AssetID"].AsUUID());
+            	 item = m_inventoryService.GetInventoryItem(wble["ItemID"].AsUUID());
+            	 AvatarWearable aWearable;
+            	 if(item!=null)
+            	 {
+                 	aWearable = new AvatarWearable(wble["ItemID"].AsUUID(), item.AssetID);
+            	 }
+                 else
+                 {
+                 	AvatarAppearance def = new AvatarAppearance();
+                 	aWearable = new AvatarWearable(wble["ItemID"].AsUUID(), def.Wearables[count].AssetID);
+                 }
                  wearableArray[count] = aWearable;
                  count++;
             }  
