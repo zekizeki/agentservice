@@ -645,7 +645,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             
             
             // TODO (Rob) we shouldnt need all this inventory code here.
-            
+            /*
             // check if we're in standalone or grid mode, then fetch the appropriate service
             m_log.Info("[OGP]: Debug 5");        
             IInterServiceInventoryServices m_interServiceInventoryService = null;
@@ -692,6 +692,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             userProfile.RootInventoryFolderID = rootID;
 	    userState.inventory_root = rootID;
 	    userState.inventory_skeleton = AgentInventoryArray;
+	    */
             UpdateOGPState(LocalAgentID, userState);
             userProfile.SurName = agentData.lastname;
             userProfile.UserAssetURI = homeScene.CommsManager.NetworkServersInfo.AssetURL;
