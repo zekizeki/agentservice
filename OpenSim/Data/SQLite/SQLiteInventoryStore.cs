@@ -276,6 +276,7 @@ namespace OpenSim.Data.SQLite
         {
             lock (ds)
             {
+                
                 DataTable inventoryItemTable = ds.Tables["inventoryitems"];
 
                 DataRow inventoryRow = inventoryItemTable.Rows.Find(item.ID.ToString());
@@ -301,7 +302,8 @@ namespace OpenSim.Data.SQLite
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
 
                 inventoryRow = inventoryFolderTable.Rows.Find(item.Folder.ToString());
-                inventoryRow["version"] = (int)inventoryRow["version"] + 1;
+                if(inventoryRow!=null)
+                    inventoryRow["version"] = (int)inventoryRow["version"] + 1;
 
                 invFoldersDa.Update(ds, "inventoryfolders");
             }
