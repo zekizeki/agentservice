@@ -388,6 +388,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                     if (XmlFind(resp, "body.asset", out text))
                     {
                         asset = new AssetBase();
+                        asset.ID = assetid;
                         asset.Data = Convert.FromBase64String(text);
                         return true;
                     }
