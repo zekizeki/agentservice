@@ -55,10 +55,11 @@ namespace OpenSim.Services.AssetService
         /// in the .ini file.
         /// </summary>
 
-        internal const int AC_VERSION = 1; // Serialization compatability version
         internal List<RemoteAssetServer> RemoteServerList = new List<RemoteAssetServer>();
+        internal static readonly string RRS_PORT = "9999";
+        internal const int AC_VERSION = 1; // Serialization compatability version
         internal static bool DUMP   = false; // Generate dump of transfer data streams
-        internal static uint m_port = 9999; // port that this server listens on
+        internal static string m_port = RRS_PORT; // port that this server listens on
         internal static string m_prefix   = "/rrs/assetserver"; // path that accepts requests
         internal static string m_register = "/rrs/register"; // path that accepts server regs
         internal static string m_rafile = "interop.txt"; // default static config file
@@ -82,7 +83,7 @@ namespace OpenSim.Services.AssetService
             IConfig assetConfig = config.Configs["AssetService"];
 
             if (assetConfig == null)
-				return;
+                return;
 
             if (m_AssetLoader != null)
             {
@@ -99,7 +100,7 @@ namespace OpenSim.Services.AssetService
                 m_log.Info("[SCATTERED ASSET SERVICE]: Local asset service enabled");
             }
 
-        	ScatteredAssetServerInit(assetConfig);
+            ScatteredAssetServerInit(assetConfig);
 
         }
 
@@ -118,7 +119,7 @@ namespace OpenSim.Services.AssetService
             if(asset == null)
                 asset = lookElseWhere(id);
 
-			return asset;
+            return asset;
 
         }
 
@@ -129,8 +130,8 @@ namespace OpenSim.Services.AssetService
 
             if (!UUID.TryParse(id, out assetID))
                 asset = lookElseWhere(id);
-			else
-            	asset = m_Database.GetAsset(assetID);
+            else
+                asset = m_Database.GetAsset(assetID);
 
             if(asset == null)
                 asset = lookElseWhere(id);
@@ -145,8 +146,8 @@ namespace OpenSim.Services.AssetService
 
             if (!UUID.TryParse(id, out assetID))
                 asset = lookElseWhere(id);
-			else
-            	asset = m_Database.GetAsset(assetID);
+            else
+                asset = m_Database.GetAsset(assetID);
 
             if(asset == null)
                 asset = lookElseWhere(id);
@@ -156,7 +157,7 @@ namespace OpenSim.Services.AssetService
 
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
-			AssetBase asset = null;
+            AssetBase asset = null;
             UUID assetID;
 
             m_log.DebugFormat("[SCATTERED ASSET SERVICE]: Get(2) asset {0}", id);
@@ -164,7 +165,7 @@ namespace OpenSim.Services.AssetService
             if (!UUID.TryParse(id, out assetID))
                     asset = lookElseWhere(id);
             else
-           		asset = m_Database.GetAsset(assetID);
+                asset = m_Database.GetAsset(assetID);
 
             if (asset == null)
                 asset = lookElseWhere(id);
@@ -312,63 +313,78 @@ namespace OpenSim.Services.AssetService
         public class RemoteAssetServer
         {
 
-            private string m_ipa;
-            private string m_port;
-            private string m_prefix;
+            private bool   g_rrs;
+            private string g_ipa;
+            private string g_port;
+            private string g_prefix;
 
-            public string ipa    { get { return m_ipa;    } }
-            public string port   { get { return m_port;   } }
-            public string prefix { get { return m_prefix; } }
+            public string ipa    { get { return g_ipa;    } }
+            public string port   { get { return g_port;   } }
+            public string prefix { get { return g_prefix; } }
            
             public RemoteAssetServer(string ipa, string port, string prefix)
             {
                 m_log.DebugFormat("[SCATTERED ASSET SERVICE] Remote Server CTOR  {0} {1} {2}", ipa, port, prefix);
-                m_ipa    = ipa;
-                m_port   = port;
-                m_prefix = prefix;
+                g_ipa    = ipa;
+                g_port   = port;
+                g_prefix = prefix;
+                g_rrs    = (port == RRS_PORT);
             }
 
-            private static readonly string GAP = "http://{0}:{1}{2}?asset={3}";
+            private static readonly string GAP1 = "http://{0}:{1}{2}?asset={3}";
+            private static readonly string GAP2 = "http://{0}:{1}{2}{3}";
 
             public bool GetAsset(string assetid, out AssetBase asset)
             {
 
-                m_log.DebugFormat("[SCATTERED ASSET SERVICE] GetAsset(W) {0}", assetid);
-
-                string requrl = String.Format(GAP, m_ipa, m_port, m_prefix, assetid);
-                XmlElement resp;
-
-                if (webCall(requrl, out resp))
+                if(g_rrs)
                 {
-                    string text;
-                    if (XmlFind(resp, "body.asset", out text))
+                    m_log.DebugFormat("[SCATTERED ASSET SERVICE] GetAsset(W) {0}", assetid);
+
+                    string requrl = String.Format(GAP1, g_ipa, g_port, g_prefix, assetid);
+
+                    XmlElement resp;
+
+                    if (webCall(requrl, out resp))
                     {
-                        int version = 0;
-                        if (XmlFind(resp, "body.asset.version", out text))
-                            version = Convert.ToInt32(text);
-                        // For now we will assume backward compatability
-                        if(version >= AC_VERSION)
+                        string text;
+                        if (XmlFind(resp, "body.asset", out text))
                         {
-                            asset = new AssetBase();
-                        	if (XmlFind(resp, "body.asset.data", out text))
-								asset.Data = Convert.FromBase64String(text);
-                        	if (XmlFind(resp, "body.asset.id", out text))
-								asset.Metadata.ID = text;
-                        	if (XmlFind(resp, "body.asset.fullid", out text))
-								asset.Metadata.FullID = new UUID(text);
-                        	if (XmlFind(resp, "body.asset.name", out text))
-								asset.Metadata.Name = text;
-                        	if (XmlFind(resp, "body.asset.desc", out text))
-								asset.Metadata.Description = text;
-                        	if (XmlFind(resp, "body.asset.type", out text))
-								asset.Metadata.Type = SByte.Parse(text);
-                        	if (XmlFind(resp, "body.asset.ctype", out text))
-								asset.Metadata.ContentType = text;
-                            asset.Metadata.Temporary = true;
-                            asset.Metadata.Local     = true;
-                            return true;
+                            int version = 0;
+                            if (XmlFind(resp, "body.asset.version", out text))
+                                version = Convert.ToInt32(text);
+                            // For now we will assume backward compatability
+                            if(version >= AC_VERSION)
+                            {
+                                asset = new AssetBase();
+                                if (XmlFind(resp, "body.asset.data", out text))
+                                    asset.Data = Convert.FromBase64String(text);
+                                if (XmlFind(resp, "body.asset.id", out text))
+                                    asset.Metadata.ID = text;
+                                if (XmlFind(resp, "body.asset.fullid", out text))
+                                    asset.Metadata.FullID = new UUID(text);
+                                if (XmlFind(resp, "body.asset.name", out text))
+                                    asset.Metadata.Name = text;
+                                if (XmlFind(resp, "body.asset.desc", out text))
+                                    asset.Metadata.Description = text;
+                                if (XmlFind(resp, "body.asset.type", out text))
+                                    asset.Metadata.Type = SByte.Parse(text);
+                                if (XmlFind(resp, "body.asset.ctype", out text))
+                                    asset.Metadata.ContentType = text;
+                                asset.Metadata.Temporary = true;
+                                asset.Metadata.Local     = true;
+                                return true;
+                            }
                         }
                     }
+                }
+                else
+                {
+                    string requrl = String.Format(GAP2, g_ipa, g_port, "/assets/", assetid);
+                    m_log.DebugFormat("[SCATTERED ASSET SERVICE] Sending OS Asset Server request <{0}>", requrl);
+                    asset = SynchronousRestObjectRequester.
+                        MakeRequest<int, AssetBase>("GET", requrl, 0);
+                    return ( asset != null);
                 }
 
                 asset = null;
@@ -390,10 +406,10 @@ namespace OpenSim.Services.AssetService
 
                 try
                 {
-				    req = (HttpWebRequest)WebRequest.Create(requrl);            
-                	req.ContentLength = 0;
-                	// We are sending just parameters, no content
-                	// Send request and retrieve the response
+                    req = (HttpWebRequest)WebRequest.Create(requrl);            
+                    req.ContentLength = 0;
+                    // We are sending just parameters, no content
+                    // Send request and retrieve the response
                     rsp = (HttpWebResponse) req.GetResponse();
 
                     XmlTextReader rdr = new XmlTextReader(rsp.GetResponseStream());
@@ -534,9 +550,9 @@ namespace OpenSim.Services.AssetService
             }
 
         }
-		#endregion
+        #endregion
 
-		#region Agent Asset Server
+        #region Agent Asset Server
 
         private void ScatteredAssetServerInit(IConfig config)
         {
@@ -544,10 +560,12 @@ namespace OpenSim.Services.AssetService
             // Agent parameters
 
             DUMP       = config.GetBoolean("RASXML", DUMP);
-            m_port     = (uint) config.GetInt("RASPort", (int) m_port);
+            m_port     = config.GetString("RASPort", RRS_PORT);
             m_prefix   = config.GetString("RASRequestPath", m_prefix);
             m_register = config.GetString("RASRegisterPath", m_register);
             m_rafile   = config.GetString("RASConfig", m_rafile);
+
+            AddServer(config.GetString("AssetServerURI", String.Empty));
 
             // Load the starting set of known asset servers
            
@@ -555,78 +573,104 @@ namespace OpenSim.Services.AssetService
 
             try
             {
-				string[] slist = File.ReadAllLines(m_rafile);
+                string[] slist = File.ReadAllLines(m_rafile);
 
-				foreach (string s in slist)
-				{
-					if (s != local)
-					{
-						string line = s.Trim();
-					   if (!line.StartsWith("#"))
-						{
-							string[] parts = line.Split('=');
-							switch (parts[0].Trim().ToLower())
-							{
-								case "localport" :
-									m_log.InfoFormat("[SCATTERED ASSET SERVICE] Setting server listener port to {0}", s);
-									m_port = Convert.ToUInt32(parts[1].Trim());
-									break;
-								case "prefix" :
-									m_log.InfoFormat("[SCATTERED ASSET SERVICE] Setting asset server prefix to {0}", s);
-									m_prefix = parts[1].Trim();
-									break;
-								case "register" :
-									m_log.InfoFormat("[SCATTERED ASSET SERVICE] Setting registration prefix to {0}", s);
-									m_register = parts[1].Trim();
-									break;
-								case "server" :
-									m_log.InfoFormat("[SCATTERED ASSET SERVICE] Registering host {0}", s);
-									parts = parts[1].Split(':');
-									string port = Convert.ToString(m_port);
-									string addr = String.Empty;
-									bool haveport = (parts.Length == 2);
-									if (parts.Length > 1) port = parts[1].Trim();
-									if (parts.Length > 0) addr = parts[0].Trim();
-									if (addr != String.Empty)
-									{
-										string prefix = m_prefix;
-										if(haveport)
-										{
-											parts = port.Split('/');
-											port  = parts[0].Trim();
-											if (parts.Length > 1) prefix = "/"+parts[1].Trim();
-										}
-										AddRemoteServer(addr, port, prefix);
-									}
-									break;
-								default :
-									m_log.DebugFormat("[SCATTERED ASSET SERVICE] Unrecognized command {0}:{1}", 
-										parts[0], parts[1]);
-									break;
-							}
-						}
-						else
-						{
-							m_log.DebugFormat("[SCATTERED ASSET SERVICE] Ignoring line {0}", s);
-						}
-					}
-					else
-						m_log.DebugFormat("[SCATTERED ASSET SERVICE] Ignoring local host {0}", s);
-				}
+                foreach (string s in slist)
+                {
+                    if (s != local)
+                    {
+                        string line = s.Trim();
+                        if (!line.StartsWith("#"))
+                        {
+                            string[] parts = line.Split('=');
+                            switch (parts[0].Trim().ToLower())
+                            {
+                                case "localport" :
+                                    m_log.InfoFormat("[SCATTERED ASSET SERVICE] Setting server listener port to {0}", s);
+                                    m_port = parts[1].Trim();
+                                    break;
+                                case "prefix" :
+                                    m_log.InfoFormat("[SCATTERED ASSET SERVICE] Setting asset server prefix to {0}", s);
+                                    m_prefix = parts[1].Trim();
+                                    break;
+                                case "register" :
+                                    m_log.InfoFormat("[SCATTERED ASSET SERVICE] Setting registration prefix to {0}", s);
+                                    m_register = parts[1].Trim();
+                                    break;
+                                case "server" :
+                                    AddServer(parts[1]);
+                                    break;
+                                default :
+                                    m_log.DebugFormat("[SCATTERED ASSET SERVICE] Unrecognized command {0}:{1}", 
+                                        parts[0], parts[1]);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            m_log.DebugFormat("[SCATTERED ASSET SERVICE] Ignoring line {0}", s);
+                        }
+                    }
+                    else
+                        m_log.DebugFormat("[SCATTERED ASSET SERVICE] Ignoring local host {0}", s);
+                }
             }
             catch(Exception e)
             {
                 m_log.DebugFormat("[SCATTERED ASSET SERVICE] Failed to read configuration file. {0}", e.Message);
             }
 
-            m_httpServer = new BaseHttpServer(m_port);
+            m_httpServer = new BaseHttpServer((uint) Convert.ToInt32(m_port));
             m_httpServer.Start();
 
             m_httpServer.AddStreamHandler(new RestStreamHandler("GET", m_prefix,   RemoteRequest));
             m_httpServer.AddStreamHandler(new RestStreamHandler("GET", m_register, RegisterServer));
         }
 
-		#endregion
+        private void AddServer(string addr)
+        {
+            string   port = String.Empty;
+            string   path = String.Empty;
+            int      ci;
+
+            m_log.InfoFormat("[SCATTERED ASSET SERVICE] Registering host {0}", addr);
+         
+            if (addr == String.Empty)
+                return;
+
+            if (addr.StartsWith("http://")) addr = addr.Substring(7);
+
+            ci = addr.IndexOf('/');
+
+            if (ci != -1)
+            {
+                path = addr.Substring(ci, addr.Length-ci).Trim();
+                addr = addr.Substring(0,ci).Trim();
+            }
+     
+            ci = addr.IndexOf(':');
+
+            if (ci != -1)
+            {
+                port = addr.Substring(ci+1, addr.Length-ci-1).Trim();
+                addr = addr.Substring(0,ci).Trim();
+            }
+            
+            addr = addr.Trim();
+
+            // If our special port is used, it MUST be our special path
+            if (port == m_port)
+                path = m_prefix;
+
+            if (port == String.Empty)
+                port = "80";
+
+            if (addr != String.Empty)
+                AddRemoteServer(addr, port, path);
+
+        }
+
+        #endregion
 
         #region Remote web interface
 
@@ -660,8 +704,8 @@ namespace OpenSim.Services.AssetService
 
             // Remember all who try to talk to us ...
 
-            if (!FindRemoteServer(req.Headers["remote_addr"], "9999"))
-                AddRemoteServer(req.Headers["remote_addr"], "9999", m_prefix);
+            if (!FindRemoteServer(req.Headers["remote_addr"], RRS_PORT))
+                AddRemoteServer(req.Headers["remote_addr"], RRS_PORT, m_prefix);
             
             if (DUMP)
             {
@@ -689,17 +733,17 @@ namespace OpenSim.Services.AssetService
                 // Explicit serialization protects us from server
                 // differences
                 response = String.Format("<body><asset>{0}</asset></body>", 
-					String.Format("<version>{0}</version>", AC_VERSION) +
-					String.Format("<data>{0}</data>", Convert.ToBase64String(asset.Data)) +
-					String.Format("<id>{0}</id>", asset.Metadata.ID) +
-					String.Format("<fullid>{0}</fullid>", asset.Metadata.FullID.ToString()) +
-					String.Format("<name>{0}</name>", asset.Metadata.Name) +
-					String.Format("<desc>{0}</desc>", asset.Metadata.Description) +
-					String.Format("<type>{0}</type>", asset.Metadata.Type) +
-					String.Format("<ctype>{0}</ctype>", asset.Metadata.ContentType) +
-					String.Format("<local>{0}</local>", asset.Metadata.Local) +
-					String.Format("<temp>{0}</temp>", asset.Metadata.Temporary)
-				);
+                    String.Format("<version>{0}</version>", AC_VERSION) +
+                    String.Format("<data>{0}</data>", Convert.ToBase64String(asset.Data)) +
+                    String.Format("<id>{0}</id>", asset.Metadata.ID) +
+                    String.Format("<fullid>{0}</fullid>", asset.Metadata.FullID.ToString()) +
+                    String.Format("<name>{0}</name>", asset.Metadata.Name) +
+                    String.Format("<desc>{0}</desc>", asset.Metadata.Description) +
+                    String.Format("<type>{0}</type>", asset.Metadata.Type) +
+                    String.Format("<ctype>{0}</ctype>", asset.Metadata.ContentType) +
+                    String.Format("<local>{0}</local>", asset.Metadata.Local) +
+                    String.Format("<temp>{0}</temp>", asset.Metadata.Temporary)
+                );
             }
 
             return response;
