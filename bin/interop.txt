@@ -12,9 +12,10 @@ localport = 9999
 # server such as cable beach.
 #
 # server   = 127.0.0.1:9999
-server   = amber.watson.ibm.com
-server = ame313.watson.ibm.com
-server = ame314.watson.ibm.com
+#server   = amber.watson.ibm.com
+#server = ame313.watson.ibm.com
+#server = ame314.watson.ibm.com
+server = etsvc02.hursley.ibm.com
 # server   = plato.oscaleta.org:9999/rrs/assetserver
 # server   = plato
 
