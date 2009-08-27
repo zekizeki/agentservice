@@ -129,6 +129,23 @@ namespace OpenSim.Region.Framework.Scenes
         {
             AddInventoryItem(remoteClient.AgentId, item);
             remoteClient.SendInventoryItemCreateUpdate(item, 0);
+
+            CachedUserInfo userInfo
+                = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+
+            if (userInfo != null)
+            {
+                AddInventoryItem(remoteClient.AgentId, item);
+                remoteClient.SendInventoryItemCreateUpdate(item, 0);
+                // [rob] for inventory reflector
+                EventManager.TriggerOnNewInventoryItemCreated(item);
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not resolve user {0} for adding an inventory item",
+                    remoteClient.AgentId);
+            }
         }
 
         /// <summary>
@@ -173,8 +190,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 InventoryService.UpdateItem(item);
 
-                // remoteClient.SendInventoryItemCreateUpdate(item);
-                return (asset.FullID);
+                        // remoteClient.SendInventoryItemCreateUpdate(item);
+	                // [rob] for inventory reflector
+        	        EventManager.TriggerOnNewInventoryItemCreated(item);
+                    return (asset.FullID);
             }
             else
             {
@@ -697,7 +716,12 @@ namespace OpenSim.Region.Framework.Scenes
             item.CreationDate = creationDate;
 
             if (InventoryService.AddItem(item))
+            {
                 remoteClient.SendInventoryItemCreateUpdate(item, callbackID);
+
+                // [rob] for inventory reflector
+                EventManager.TriggerOnNewInventoryItemCreated(item);
+            }
             else
             {
                 m_dialogModule.SendAlertToUser(remoteClient, "Failed to create item");
@@ -1790,6 +1814,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (remoteClient != null && item.Owner == remoteClient.AgentId)
                 {
                     remoteClient.SendInventoryItemCreateUpdate(item, 0);
+                    // [rob] for inventory reflector
+                    EventManager.TriggerOnNewInventoryItemCreated(item);
                 }
                 else
                 {
@@ -1797,6 +1823,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (notifyUser != null)
                     {
                         notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
+	                // [rob] for inventory reflector
+         	       EventManager.TriggerOnNewInventoryItemCreated(item);
                     }
                 }
             }
@@ -1845,6 +1873,9 @@ namespace OpenSim.Region.Framework.Scenes
                     if (remoteClient != null)
                     {
                         remoteClient.SendInventoryItemCreateUpdate(item, 0);
+                        // for inventory reflector
+                        EventManager.TriggerOnNewInventoryItemCreated(item);
+
                     }
                 }
             }
@@ -1898,9 +1929,14 @@ namespace OpenSim.Region.Framework.Scenes
                 grp.SetFromItemID(item.ID);
 
                 if (InventoryService.AddItem(item))
+                {
                     remoteClient.SendInventoryItemCreateUpdate(item, 0);
+                    // for inventory reflector
+                    EventManager.TriggerOnNewInventoryItemCreated(item);
+                }
                 else
                     m_dialogModule.SendAlertToUser(remoteClient, "Operation failed");
+	           
 
                 itemID = item.ID;
                 return item.AssetID;

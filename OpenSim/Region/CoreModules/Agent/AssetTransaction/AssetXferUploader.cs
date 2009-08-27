@@ -237,7 +237,12 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             item.CreationDate = Util.UnixTimeSinceEpoch();
 
             if (invService.AddItem(item))
+            {
                 ourClient.SendInventoryItemCreateUpdate(item, callbackID);
+                
+                // trigger the inventory created event
+                m_userTransactions.Manager.MyScene.EventManager.TriggerOnNewInventoryItemCreated(item);
+            }
             else
                 ourClient.SendAlertMessage("Unable to create inventory item");
         }

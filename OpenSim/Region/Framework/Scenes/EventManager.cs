@@ -198,6 +198,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event NewInventoryItemUploadComplete OnNewInventoryItemUploadComplete;
 
+
+        // Rob - add delegate and event so we can capture new inventory item details
+        public delegate void NewInventoryItemCreated(InventoryItemBase item);
+        public event NewInventoryItemCreated OnNewInventoryItemCreated;
+
+
         public delegate void RequestChangeWaterHeight(float height);
 
         public event RequestChangeWaterHeight OnRequestChangeWaterHeight;
@@ -415,6 +421,7 @@ namespace OpenSim.Region.Framework.Scenes
         private ChatFromClientEvent handlerChatFromClient = null; // OnChatFromClient;
         private ChatBroadcastEvent handlerChatBroadcast = null; // OnChatBroadcast;
         private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
+        private NewInventoryItemCreated handlerNewInventoryItemCreated = null; // rob - for ogp
         private RequestChangeWaterHeight handlerRequestChangeWaterHeight = null; //OnRequestChangeWaterHeight
         private ScriptControlEvent handlerScriptControlEvent = null;
         private SignificantClientMovement handlerSignificantClientMovement = null;
@@ -802,6 +809,17 @@ namespace OpenSim.Region.Framework.Scenes
                 handlerNewInventoryItemUpdateComplete(agentID, AssetID, AssetName, userlevel);
             }
         }
+
+        //Rob - added for OGP inventory reflector
+        public void TriggerOnNewInventoryItemCreated(InventoryItemBase item)
+        {
+            handlerNewInventoryItemCreated = OnNewInventoryItemCreated;
+            if (handlerNewInventoryItemCreated != null)
+            {
+                handlerNewInventoryItemCreated(item);
+            }
+        }
+
 
         public void TriggerLandBuy(Object sender, LandBuyArgs e)
         {

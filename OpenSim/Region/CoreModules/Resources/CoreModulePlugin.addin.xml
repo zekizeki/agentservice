@@ -20,6 +20,7 @@
       <!-- Service connectors OUT modules -->
         <RegionModule id="LocalUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.User.LocalUserServicesConnector" />
         <RegionModule id="RemoteUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.User.RemoteUserServicesConnector" />
+        <RegionModule id="AgentAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.AgentAssetServicesConnector" />
         <RegionModule id="LocalAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.LocalAssetServicesConnector" />
         <RegionModule id="RemoteAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.RemoteAssetServicesConnector" />
         <RegionModule id="HGAssetBroker" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.HGAssetBroker" />

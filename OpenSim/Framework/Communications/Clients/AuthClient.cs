@@ -118,6 +118,7 @@ namespace OpenSim.Framework.Communications.Clients
 
         public static bool VerifySession(string authurl, UUID userID, UUID sessionID)
         {
+	    System.Console.WriteLine("DWLAUTH1");
             Hashtable requestData = new Hashtable();
             requestData["avatar_uuid"] = userID.ToString();
             requestData["session_id"] = sessionID.ToString();

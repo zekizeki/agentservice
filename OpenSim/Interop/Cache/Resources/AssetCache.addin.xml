@@ -1,0 +1,11 @@
+<Addin id="OpenSim.Interop.Cache" version="1.0">
+    <Runtime>
+        <Import assembly="OpenSim.Interop.Cache.dll"/>
+    </Runtime>
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+    </Dependencies>
+    <Extension path="/OpenSim/AssetCache">
+    	<Cache id="Interop" provider="Interop" type="OpenSim.Interop.Cache.InteropCache" />
+    </Extension>
+</Addin>

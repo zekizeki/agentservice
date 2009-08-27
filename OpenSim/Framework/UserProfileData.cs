@@ -137,6 +137,12 @@ namespace OpenSim.Framework
         private string m_userAssetUri = String.Empty;
 
         /// <summary>
+        /// A URI to the users inventory resolver, used for extended OGP work
+        /// </summary>
+        private string _userInventoryResolverURI = String.Empty;
+
+
+        /// <summary>
         /// A URI to the users inventory server, used for foreigners and large grids
         /// </summary>
         private string m_userInventoryUri = String.Empty;
@@ -322,6 +328,12 @@ namespace OpenSim.Framework
         {
             get { return m_userInventoryUri; }
             set { m_userInventoryUri = value; }
+        }
+
+        public string UserInventoryResolverURI
+        {
+            get { return _userInventoryResolverURI; }
+            set { _userInventoryResolverURI = value; }
         }
 
         public string UserAssetURI

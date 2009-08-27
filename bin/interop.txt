@@ -1,0 +1,21 @@
+#
+# Local port is the port that this 
+# asset server will listen on.
+#
+localport = 9999
+#
+# These are examples of other known asset servers.
+# Provided your machine is an SMP, you can use 
+# these to test things out by way of circular
+# failures. Specifying a prefix (path) is only 
+# necessary if this is a heterogeneous asset
+# server such as cable beach.
+#
+# server   = 127.0.0.1:9999
+#server   = amber.watson.ibm.com
+#server = ame313.watson.ibm.com
+#server = ame314.watson.ibm.com
+server = etsvc02.hursley.ibm.com
+# server   = plato.oscaleta.org:9999/rrs/assetserver
+# server   = plato
+
