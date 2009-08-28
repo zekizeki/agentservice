@@ -39,6 +39,16 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
 
+
+// Structured Data
+using OpenMetaverse.StructuredData;
+using OSD = OpenMetaverse.StructuredData.OSD;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+using OSDArray = OpenMetaverse.StructuredData.OSDArray;
+
+using System.Net;
+using System.IO;
+
 namespace OpenSim.Region.Framework.Scenes
 {
     public partial class Scene
@@ -2010,7 +2020,30 @@ namespace OpenSim.Region.Framework.Scenes
             // Rez object
             InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
             item = InventoryService.GetItem(item);
-
+            
+            // [OGP] resolve non local inventory items
+            if(item ==null)
+            {
+            	m_log.InfoFormat("[OGP SCENE.INVENTORY]: item {0} was not found in the regions normal inventory, asking the users agent service",itemID);
+                CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                
+    			if (userInfo != null)
+                {
+                       string inventoryResolverURI = "";
+    		            UserProfileData userProfile = userInfo.UserProfile;
+    	                if (userProfile != null)
+    	                {
+    			            inventoryResolverURI = userProfile.UserInventoryResolverURI;
+    		                m_log.InfoFormat("[OGP SCENE.INVENTORY]: Resolver URI found was {0}",inventoryResolverURI);
+    		                
+    		                if ( inventoryResolverURI != "")
+                                item = invResolverHelper(inventoryResolverURI,remoteClient.AgentId,itemID);
+                      
+                        }
+                    
+                }
+            }
+			
             if (item != null)
             {
                 AssetBase rezAsset = AssetService.Get(item.AssetID.ToString());
@@ -2509,5 +2542,113 @@ namespace OpenSim.Region.Framework.Scenes
                 part.GetProperties(remoteClient);
             }
         }
+        
+        	// ---------------------------------------------
+	//
+        // Helper to call out to inventory resolver cap
+	//
+	// ---------------------------------------------
+	 	
+      InventoryItemBase invResolverHelper(string cap, UUID agent, UUID itemID)
+      {
+      m_log.InfoFormat("[ZHA SCENE.INV]: InvResolverHelper called with URI {0} Agent {1} Item {2}",cap, agent.ToString(),itemID.ToString());
+      WebRequest invResolverRequest = null; 
+            try 
+            { 
+                invResolverRequest = WebRequest.Create(cap); 
+            } 
+            catch (Exception ex) 
+            { 
+                m_log.InfoFormat("[Agent Domain]: Bad URL inventory resolver cap {0} {1}", ex.Message,cap); 
+                return (InventoryItemBase)null;
+            } 
+            invResolverRequest.Method = "POST"; 
+            invResolverRequest.ContentType = "application/xml+llsd"; 
+            // Build out the request 
+            OSDMap IRRMap = new OSDMap(); // Map of the parms 
+            IRRMap["agent_uuid"] = OSD.FromUUID(agent);
+	    IRRMap["item_id"] = OSD.FromUUID(itemID);
+            string IRRMapString = IRRMap.ToString(); 
+            m_log.InfoFormat("[ZHA SCENE.INVENTORY] IRRMap string {0}", IRRMapString); 
+            OSD LLSDofMap = IRRMap; 
+            byte[] buffer1 = OSDParser.SerializeLLSDXmlBytes(LLSDofMap); 
+            
+            // Try to post the rez avatar reqest 
+            Stream os1 = null; 
+            try 
+            { // send the Post 
+                invResolverRequest.ContentLength = buffer1.Length; //Count bytes to send 
+                os1 = invResolverRequest.GetRequestStream(); 
+                os1.Write(buffer1, 0, buffer1.Length); //Send it 
+                os1.Close(); 
+                m_log.InfoFormat("[ZHA SCENE.INVENTORY]: Sent inventory request to cap {0}", cap); 
+            } 
+            catch (Exception ex) 
+            { 
+                m_log.InfoFormat("[Agent Domain]: Bad send on derez_avatar {0}", ex.Message); 
+            } 
+	    // Now we get to read the response 
+	             m_log.Info("[Agent Domain]: waiting for a reply after rez avatar/request send"); 
+            // Read the reply 
+            OSD resolverResponse = null; 
+            OSDMap invResponseMap = new OSDMap(); 
+	    string invResponse;
+            { // "get the response nesting block" 
+                try 
+                { 
+                    WebResponse webResponse = invResolverRequest.GetResponse(); 
+                    if (webResponse == null) 
+                     { 
+                        m_log.Info("[ZHA SCENE.INV]: Null reply on Inventory Resolver post"); 
+	                return (InventoryItemBase)null;
+                    } 
+                    StreamReader sr = new StreamReader(webResponse.GetResponseStream()); 
+                    invResponse = sr.ReadToEnd().Trim(); 
+                    m_log.InfoFormat("[ZHA SCENE.INV]: InventoryResolver reply was {0} ", invResponse); 
+                } 
+                catch (WebException ex) 
+                { 
+                    m_log.InfoFormat("[ZHA SCENE.INV]: exception on read after send of inventory resolver {0}", ex.Message); 
+	            return (InventoryItemBase)null;
+                } 
+                try 
+                { 
+                    resolverResponse = OSDParser.DeserializeLLSDXml(invResponse); 
+                    invResponseMap = (OSDMap)resolverResponse; 
+                } 
+                catch (Exception ex) 
+                { 
+                    m_log.InfoFormat("[ZHA SCENE.INV]: exception on parse of invResolver reply {0}", ex.Message); 
+                    return (InventoryItemBase)null;	
+                } 
+            } // end of "get the response nesting block" 
+	InventoryItemBase resolvedItem = new InventoryItemBase();
+        resolvedItem.Name = invResponseMap["name"].AsString();
+        resolvedItem.InvType = invResponseMap["type"].AsInteger();
+	resolvedItem.Folder =   invResponseMap["folder"].AsUUID();
+	resolvedItem.CreatorId =   invResponseMap["creator"].AsString();
+	resolvedItem.CreatorIdAsUuid = invResponseMap["creator"].AsUUID();
+	resolvedItem.Description= invResponseMap["description"].AsString();
+	          // Perms
+	resolvedItem.NextPermissions = (uint) invResponseMap["next_permissions"].AsInteger();
+	resolvedItem.BasePermissions = (uint) invResponseMap["base_permissions"].AsInteger();
+	m_log.InfoFormat("[ZHA SI]: Item with name {0} has base permsions {1}",resolvedItem.Name,resolvedItem.BasePermissions);
+	resolvedItem.EveryOnePermissions = (uint) invResponseMap["everyone_permissions"].AsInteger();
+	resolvedItem.GroupPermissions = (uint) invResponseMap["group_permissions"].AsInteger();
+        resolvedItem.AssetType= invResponseMap["asset_type"].AsInteger();
+	resolvedItem.AssetID =   invResponseMap["asset_id"].AsUUID();
+	resolvedItem.GroupID = invResponseMap["group_id"].AsUUID();
+	resolvedItem.GroupOwned = invResponseMap["group_owned"].AsBoolean();
+	resolvedItem.SalePrice = invResponseMap["sale_price"].AsInteger();
+	resolvedItem.SaleType = (byte) invResponseMap["sale_type"].AsInteger();
+	resolvedItem.Flags =  (uint)invResponseMap["flags"].AsInteger();
+	resolvedItem.CreationDate = invResponseMap["creation_date"].AsInteger();
+	m_log.Info("Passing back a resolved item");
+      return resolvedItem;
+      }
+
+        
+        
+        
     }
 }
