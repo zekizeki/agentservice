@@ -508,7 +508,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             } 
         
             // Now we get to read the response 
-            m_log.Info("[OGP InventoryReflector]: waiting for a reply after new inventory request send"); 
+            m_log.Info("[OGP InventoryReflector]: waiting for a reply after inventory request send"); 
             
              // Read the reply 
             OSD resolverResponse = null; 
