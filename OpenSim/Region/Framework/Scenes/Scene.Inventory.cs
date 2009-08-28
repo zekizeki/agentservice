@@ -170,6 +170,29 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
             item = InventoryService.GetItem(item);
 
+			// [OGP] look up inventory item at the agent service
+			if(item ==null)
+            {
+            	m_log.InfoFormat("[OGP SCENE.INVENTORY]: item {0} was not found in the regions normal inventory, asking the users agent service",itemID);
+                CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                
+    			if (userInfo != null)
+                {
+                       string inventoryResolverURI = "";
+    		            UserProfileData userProfile = userInfo.UserProfile;
+    	                if (userProfile != null)
+    	                {
+    			            inventoryResolverURI = userProfile.UserInventoryResolverURI;
+    		                m_log.InfoFormat("[OGP SCENE.INVENTORY]: Resolver URI found was {0}",inventoryResolverURI);
+    		                
+    		                if ( inventoryResolverURI != "")
+                                item = invResolverHelper(inventoryResolverURI,remoteClient.AgentId,itemID);
+                      
+                        }
+                    
+                }
+            }
+
             if (item != null)
             {
                 if ((InventoryType)item.InvType == InventoryType.Notecard)
