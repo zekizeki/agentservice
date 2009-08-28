@@ -467,7 +467,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 m_log.Error("[Agent Domain] GetAgentWearables we have a null appearance");
                 
                 // if they dont have an appearance they wont have an inventory, create it now
-                m_interInventoryService.CreateNewUserInventory(agentUUID);
+                m_inventoryService.CreateNewUserInventory(agentUUID);
+                //m_interInventoryService.CreateNewUserInventory(agentUUID);
                 
                 // ok lets create the default appearance
                 appearance = new AvatarAppearance(agentUUID, GetDefaultWearables(), GetDefaultVisualParams());
@@ -834,7 +835,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
         public OSD getInventorySkeleton(UUID agentUUID)
         {
             List<InventoryFolderBase> folderList = null;
-            folderList = m_interInventoryService.GetInventorySkeleton(agentUUID);
+            //folderList = m_interInventoryService.GetInventorySkeleton(agentUUID);
+            folderList = m_inventoryService.GetInventorySkeleton(agentUUID);
             
             OSDArray skelArray = new OSDArray();
             
@@ -1137,7 +1139,7 @@ OSDMap createItemMap(InventoryItemBase invItem)
 InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
    {
    List<InventoryItemBase> itemList = null;
-//   itemList = m_interInventoryService.RequestFolderItems(folder); // HERE DWL 
+   itemList = m_inventoryService.RequestFolderItems(folder); // HERE DWL 
 //   itemList = m_interInventoryService.GetItemsFolder(folder); // HERE DWL 
    foreach (InventoryItemBase invItem in itemList)
       {
@@ -1149,7 +1151,7 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
          }
       } // Ok, if not found in the items, recurse into the folders
     List<InventoryFolderBase> folderList = null;
-//    folderList = m_interInventoryService.RequestSubFolders(folder); // HERE DWL
+    folderList = m_inventoryService.RequestSubFolders(folder); // HERE DWL
 //    folderList = m_interInventoryService.RequestSubFolders(folder); // HERE DWL
     InventoryItemBase tmp = null;
     foreach (InventoryFolderBase invFolder in folderList)
@@ -1207,8 +1209,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
         m_log.InfoFormat("[AGENT DOMAIN]: Inventory Resolver is looking for and item ID of {0}",requestItemID.ToString());
 	// If we're here, we have the UUID of the agent we are working for 
 	// now we need to call the inventory service and map out the UUID from the Item ID
-//         InventoryFolderBase rootFolderB = m_interInventoryService.RequestRootFolder(agentUUID); // HERE DWL
-	 InventoryFolderBase rootFolderB = new InventoryFolderBase();
+         InventoryFolderBase rootFolderB = m_inventoryService.RequestRootFolder(agentUUID); // HERE DWL
+	 //InventoryFolderBase rootFolderB = new InventoryFolderBase();
          UUID rootFolder = rootFolderB.ID;
 	 m_log.InfoFormat("[AGENT DOMAIN] inventory resolver got root folder of {0}", rootFolder.ToString());
 	 InventoryItemBase locatedItem = locateItem(requestItemID,rootFolder);

@@ -78,7 +78,7 @@ namespace OpenSim.Grid.AgentDomain
         {
             XmlConfigurator.Configure();
 
-            m_log.Info("Launching UserServer...");
+            m_log.Info("Launching AgentDomain...");
 
             OpenAD_Main userserver = new OpenAD_Main();
 
@@ -126,7 +126,7 @@ namespace OpenSim.Grid.AgentDomain
 
         protected virtual IInterServiceInventoryServices StartupCoreComponents()
         {
-            Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
+            Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "AgentDomain_Config.xml")));
 
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
 
