@@ -206,11 +206,11 @@ namespace OpenSim.Services.AssetService
 
             m_log.DebugFormat("[SCATTERED ASSET SERVICE] ENTRY Store <{0}>", asset.ID);
 
-            //if(asset.Temporary)
-            //{
-			//	m_log.DebugFormat("[SCATTERED ASSET SERVICE] EXIT <{0}> is temporary, not stored anywhere", asset.ID);
-            //    return asset.ID;
-            //}
+            if(asset.Temporary)
+            {
+				m_log.DebugFormat("[SCATTERED ASSET SERVICE] EXIT <{0}> is temporary, not stored anywhere", asset.ID);
+                return asset.ID;
+            }
 
             // If the local data base exists, and the ID is
             // a valid UUID. Look to see if the asset 
