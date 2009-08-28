@@ -1472,6 +1472,9 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
                 item.SalePrice = itemUpd.SalePrice;
             	item.SaleType = itemUpd.SaleType;
                 item.Flags = itemUpd.Flags;
+                m_log.Info("[AGENT DOMAIN]: updateInventory assettype is "+itemUpd.AssetType + "assetid is " + itemUpd.AssetID);
+                item.AssetType = itemUpd.AssetType;
+                item.AssetID = itemUpd.AssetID;
             }
 			
 			// call the inventory service to add it 
