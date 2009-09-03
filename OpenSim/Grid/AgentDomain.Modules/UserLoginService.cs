@@ -1454,7 +1454,7 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             	item.Name = itemUpd.Name;
                 item.Description = itemUpd.Description;
                 item.NextPermissions = itemUpd.NextPermissions;
-                item.CurrentPermissions |= 8; // Slam!
+                item.CurrentPermissions |= itemUpd.CurrentPermissions; 
                 item.EveryOnePermissions = itemUpd.EveryOnePermissions;
                 item.GroupPermissions = itemUpd.GroupPermissions;
 
