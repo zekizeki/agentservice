@@ -375,6 +375,9 @@ namespace OpenSim.Grid.AgentDomain.Modules
             m_log.InfoFormat("[Agent Domain]: derez_avatar cap on reply is {0}",derez_avatarCapString); 
             m_log.InfoFormat("[Agent Domain]: derez_avatar region seed cap on reply is {0}",region_seedCapString); 
             
+            // make sure we store this derez cap, otherwise we'll always send derez requests to our start region.
+            state.derezCap = derez_avatarCapString;
+            
             // -------------------------------------------------------------------- 
             // Now we do the derez avatar on the old sim, pointing it at the new one 
             // -------------------------------------------------------------------- 
