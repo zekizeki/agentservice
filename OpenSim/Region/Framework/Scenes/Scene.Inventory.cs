@@ -118,6 +118,8 @@ namespace OpenSim.Region.Framework.Scenes
                     userlevel = 2;
                 }
                 EventManager.TriggerOnNewInventoryItemUploadComplete(AgentID, item.AssetID, item.Name, userlevel);
+                // [rob] for inventory reflector
+                EventManager.TriggerOnNewInventoryItemCreated(item);
             }
             else
             {
