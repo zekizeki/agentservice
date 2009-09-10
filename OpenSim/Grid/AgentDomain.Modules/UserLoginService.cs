@@ -1302,7 +1302,23 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             responseMap["authenticated"] = OSD.FromBoolean(true); 
             return responseMap; 
         } 
+	
+	// ----------------------------------------------------------------
+	//
+	// Simple cap to echo back requests
+	//
+	// -----------------------------------------------------------------
+
         
+
+        public OSD adEchoCap(string path, OSD request, string endpoint) 
+	{
+	m_log.Info("[Agent Domain]: Echo Cap entry");
+	OSDMap requestMap = (OSDMap)request;
+	m_log.InfoFormat("ECHO input {0}",requestMap);
+	return (OSD) null;
+	}
+
         
         
         // -------------------------------------------------------------------- 
@@ -1355,6 +1371,7 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             
             // TODO Rob add the WebFetchInventoryDescendents Cap here 
             capMap["agent/inventory"] = OSD.FromString(adPrefix+"/cap/agent/inventory/"+capSufix);
+            capMap["agent/test/echo"] = OSD.FromString(adPrefix+"/cap/agent/test/echo/"+capSufix);
             m_log.InfoFormat("WebFetchInventoryDescendents cap url is {0}", adPrefix+"/cap/agent/inventory/"+capSufix);
             
             // TODO Rob need to track and remove this handler on derez
@@ -1897,6 +1914,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             m_httpServer.AddLLSDHandler("/agent/inventoryfolder_delete",deleteInventoryFolder);
             
             m_httpServer.AddLLSDHandler("/agent/wearables/update",updateWearables);
+            m_httpServer.AddLLSDHandler("/cap/agent/test/echo",adEchoCap);
+
             
             // TODO Rob this is in the wrong place, but will work here for now
             // we need this so the inventory service can call us to verify the session.
