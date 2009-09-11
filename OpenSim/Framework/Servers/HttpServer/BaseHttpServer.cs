@@ -331,7 +331,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //  the request can be passed through to the other handlers. This is a low
                 //  probability event; if a request is matched it is normally expected to be
                 //  handled
-                m_log.Info("[BASE HTTP SERVER]: Handling Request" + request.RawUrl);
+                //m_log.Info("[BASE HTTP SERVER]: Handling Request" + request.RawUrl);
                 IHttpAgentHandler agentHandler;
 
                 if (TryGetAgentHandler(request, response, out agentHandler))
@@ -349,7 +349,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 string path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
 
-                m_log.InfoFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
+                //m_log.InfoFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
 
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {

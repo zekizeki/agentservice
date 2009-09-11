@@ -1316,7 +1316,7 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
 	m_log.Info("[Agent Domain]: Echo Cap entry");
 	OSDMap requestMap = (OSDMap)request;
 	m_log.InfoFormat("ECHO input {0}",requestMap);
-	return (OSD) null;
+	return request;
 	}
 
         
