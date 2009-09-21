@@ -1344,6 +1344,7 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             adURL = "http://"+ipHostString+":"+ipHostPort+"/agent_seed_cap/"+agentCapability ; 
             responseMap["agent_seed_capability"] = OSD.FromString(adURL); 
             responseMap["authenticated"] = OSD.FromBoolean(true); 
+	    responseMap["reason"] = OSD.FromString("Fell through to the default case");
             return responseMap; 
         } 
 	
