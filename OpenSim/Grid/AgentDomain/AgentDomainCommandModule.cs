@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -133,7 +133,18 @@ namespace OpenSim.Grid.AgentDomain
             m_console.Commands.AddCommand("userserver", false, "logoff-user",
                     "logoff-user <first> <last> <message>",
                     "Log off a named user", RunCommand);
+
+	    m_console.Commands.AddCommand("agentdomain",false,"liveusers",
+		    "liveusers",
+	            "Show the status of all the current users on the agent domain", handleLiveUsers);
         }
+
+
+	public void handleLiveUsers(string module, string[] args)
+	{
+	m_log.Info("[Agent Domain]: Test hand live users command.");
+	
+	}
 
         #region Console Command Handlers
         public void do_create(string[] args)
@@ -249,6 +260,8 @@ namespace OpenSim.Grid.AgentDomain
         }
         */
 
+
+	
         private void HandleLoginCommand(string module, string[] cmd)
         {
             string subcommand = cmd[1];
