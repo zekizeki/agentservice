@@ -242,6 +242,9 @@ namespace OpenSim.Grid.AgentDomain.Modules
              { 
                 m_log.WarnFormat("Agent Domain]: Major error, failed to find stored state for agent UUID {0}",agentUUID.ToString()); 
                 responseMap["connect"] = OSD.FromBoolean(false); 
+	        responseMap["reason"] = OSD.FromString("Unable to find state for agent");
+		responseMap["message"] = OSD.FromString("State not found");
+		
                 return responseMap; 
             } 
             else 
@@ -264,6 +267,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
             { 
                 m_log.InfoFormat("[Agent Domain]: Bad URL rez_avatar {0} region Cap was {1}", ex.Message,regionCapString); 
                 responseMap["connect"] = OSD.FromBoolean(false); 
+	        responseMap["reason"] = OSD.FromString("Bad region cap URL"+regionCapString);
+		responseMap["message"] = OSD.FromString("Bad Cap");
                 return responseMap; 
             } 
             rezRequest.Method = "POST"; 
@@ -330,6 +335,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
             { 
                 m_log.InfoFormat("[Agent Domain]: Bad send on rez_avatar {0}", ex.Message); 
                 responseMap["connect"] = OSD.FromBoolean(false); 
+	        responseMap["reason"] = OSD.FromString("Send failed on rez avatar");
+		responseMap["message"] = OSD.FromString("Rez avatar send failed");
                 return responseMap; 
             } 
             m_log.Info("[Agent Domain]: waiting for a reply after rez avatar/request send"); 
@@ -353,6 +360,9 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 { 
                     m_log.InfoFormat("[Agent Domain]: exception on read after send of rez avatar {0}", ex.Message); 
                     responseMap["connect"] = OSD.FromBoolean(false); 
+	        responseMap["reason"] = OSD.FromString("Exception on read after send of rez avatar");
+		responseMap["message"] = OSD.FromString("read failed after Rez avatar send");
+
                     return responseMap; 
                 } 
                 try 
@@ -364,6 +374,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 { 
                     m_log.InfoFormat("[Agent Domain]: exception on parse of rez reply {0}", ex.Message); 
                     responseMap["connect"] = OSD.FromBoolean(false); 
+	        responseMap["reason"] = OSD.FromString("Parse failed on rez avatar");
+		responseMap["message"] = OSD.FromString("Rez avatar parse failed");
                     return responseMap; 
                 } 
             } // end of "get the response nesting block" 
@@ -392,6 +404,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
             { 
                 m_log.InfoFormat("[Agent Domain]: Bad URL derez_avatar {0} Cap was {1}", ex.Message,derezCap); 
                 responseMap["connect"] = OSD.FromBoolean(false); 
+	        responseMap["reason"] = OSD.FromString("Malformed URL on derez"+derezCap);
+		responseMap["message"] = OSD.FromString("Bad URL on derez"+derezCap);
                 return responseMap; 
             } 
             derezRequest.Method = "POST"; 
@@ -416,6 +430,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
             catch (Exception ex) 
             { 
                 m_log.InfoFormat("[Agent Domain]: Bad send on derez_avatar {0}", ex.Message); 
+	        responseMap["reason"] = OSD.FromString("Send failed on derez avatar");
+		responseMap["message"] = OSD.FromString("DeRez avatar send failed");
                 responseMap["connect"] = OSD.FromBoolean(false); 
                 return responseMap; 
             } 
@@ -438,6 +454,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 catch (WebException ex) 
                 { 
                     m_log.InfoFormat("[Agent Domain]: exception on read after send of rez avatar {0}", ex.Message); 
+	        responseMap["reason"] = OSD.FromString("Read failed on rez avatar");
+		responseMap["message"] = OSD.FromString("Rez avatar read failed");
                     responseMap["connect"] = OSD.FromBoolean(false); 
                     return responseMap; 
                 } 
@@ -450,6 +468,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 catch (Exception ex) 
                 { 
                     m_log.InfoFormat("[Agent Domain]: exception on parse of derez reply {0}", ex.Message); 
+	        responseMap["reason"] = OSD.FromString("Parse failed on derez reply");
+		responseMap["message"] = OSD.FromString("Derez reply parse fail.");
                     responseMap["connect"] = OSD.FromBoolean(false); 
                     return responseMap; 
                 } 
@@ -581,6 +601,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
             if (pathSegments.Length <4) 
              { 
                 m_log.WarnFormat("[Agent Domain]: badly formed rez_avatar_place request {0}",path); 
+	        responseMap["reason"] = OSD.FromString("Badly formed rez_avaatar_place");
+		responseMap["message"] = OSD.FromString("Rez avatar place bad");
                 responseMap["connect"] = OSD.FromBoolean(false); 
                 return responseMap; 
             } 
@@ -632,6 +654,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
             { 
                 m_log.InfoFormat("[Agent Domain]: Bad URL rez_avatar {0} region Cap was {1}", ex.Message,regionCapString); 
                 responseMap["connect"] = OSD.FromBoolean(false); 
+	        responseMap["reason"] = OSD.FromString("bad URL on rez avatar request");
+		responseMap["message"] = OSD.FromString("Rez avatar request bad url");
                 return responseMap; 
             } 
             rezRequest.Method = "POST"; 
@@ -690,6 +714,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
             { 
                 m_log.InfoFormat("[Agent Domain]: Bad send on rez_avatar {0}", ex.Message); 
                 responseMap["connect"] = OSD.FromBoolean(false); 
+	        responseMap["reason"] = OSD.FromString("Send failed on rez avatar");
+		responseMap["message"] = OSD.FromString("Rez avatar send failed");
                 return responseMap; 
             } 
             m_log.Info("[Agent Domain]: waiting for a reply after rez avatar/request send"); 
@@ -713,6 +739,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 { 
                     m_log.InfoFormat("[Agent Domain]: exception on read after send of rez avatar {0}", ex.Message); 
                     responseMap["connect"] = OSD.FromBoolean(false); 
+	        responseMap["reason"] = OSD.FromString("read failed after send of rez avatar");
+		responseMap["message"] = OSD.FromString("Fail on read after send of rez avatar");
                     return responseMap; 
                 } 
                 try 
@@ -723,6 +751,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 catch (Exception ex) 
                 { 
                     m_log.InfoFormat("[Agent Domain]: exception on parse of rez reply {0}", ex.Message); 
+	        responseMap["reason"] = OSD.FromString("parse failed on rez avatar response");
+		responseMap["message"] = OSD.FromString("Rez avatar response parse failed");
                     responseMap["connect"] = OSD.FromBoolean(false); 
                     return responseMap; 
                 } 
@@ -745,6 +775,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 m_log.InfoFormat("[Agent Domain]: exception on rez cav cap {0} cap was {1}", ex.Message,rez_avatarCapString); 
                 m_log.WarnFormat("[Agent Domain]: Resetting agent state.",agentUUID.ToString(),storedFirstName,storedLastName); 
                 m_state_table.updateAgentState(agentUUID,AgentADState.logged_out);
+	        responseMap["reason"] = OSD.FromString("Agent currently logged on. Forcing offline.");
+		responseMap["message"] = OSD.FromString("Logged on agent, forcing offilne");
                 responseMap["connect"] = OSD.FromBoolean(false); 
                 return responseMap; 
             } 
@@ -773,6 +805,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
             catch (WebException ex) 
             { 
                 m_log.InfoFormat("[Agent Domain]: Bad send on rez_avatar rez {0}", ex.Message); 
+	        responseMap["reason"] = OSD.FromString("Send failed on rez avatar");
+		responseMap["message"] = OSD.FromString("Rez avatar send failed");
                 responseMap["connect"] = OSD.FromBoolean(false); 
                 return responseMap; 
             } 
@@ -797,6 +831,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 { 
                     m_log.InfoFormat("[Agent Domain]: exception on read after send of rez avatar rez {0}", ex.Message); 
                     responseMap["connect"] = OSD.FromBoolean(false); 
+	            responseMap["reason"] = OSD.FromString("Read failed on rez avatar");
+  		    responseMap["message"] = OSD.FromString("Rez avatar read failed");
                     return responseMap; 
                 } 
                 
@@ -809,6 +845,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 { 
                     m_log.InfoFormat("[Agent Domain]: exception on parse of rez rez reply {0}", ex.Message); 
                     responseMap["connect"] = OSD.FromBoolean(false); 
+   	            responseMap["reason"] = OSD.FromString("Parse failed on rez avatar");
+		    responseMap["message"] = OSD.FromString("Rez avatar parse failed");
                     return responseMap; 
                 } 
                  
@@ -1192,6 +1230,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
            { 
            m_log.WarnFormat("[Agent Domain]: Badly formed seed cap fetch path {0} from endpoint {1}",path,endpoint); 
            responseMap["connect"] = OSD.FromBoolean(true); 
+           responseMap["reason"] = OSD.FromString("Baddly formed seed cap path "+path);
+	   responseMap["message"] = OSD.FromString("Seed cap badly formed "+path);
            return responseMap; 
           } 
         UUID agentUUID = m_uuid_table.getAgentUUIDforCap(pathSegments[3]); 
@@ -1266,6 +1306,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
                    m_uuid_table. breakCapLink(agentUUID); 
                    responseMap["connected"] = OSD.FromBoolean(false); 
                    responseMap["authenticated"] = OSD.FromBoolean(false); 
+	           responseMap["reason"] = OSD.FromString("Agent was logged on. Forcing off");
+		   responseMap["message"] = OSD.FromString("Logged on Agent, Forcing off");
                    return responseMap; 
                    break;
                 // OK, we know the agent and they are logged out. Get a new cap created and use it 
@@ -1293,6 +1335,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
                    m_log.InfoFormat("[AGENT_DOMAIN]: AdLoginTest for user {0} {1} ERROR unknown state",loginFirstName,loginLastName); 
                    responseMap["connected"] = OSD.FromBoolean(false); 
                    responseMap["authenticated"] = OSD.FromBoolean(false); 
+	        responseMap["reason"] = OSD.FromString("unknown avatar state, resetting.");
+		responseMap["message"] = OSD.FromString("Resetting unknown avatar state. Retry Login.");
                    m_state_table.updateAgentState(agentUUID,AgentADState.logged_out); 
                    return responseMap;
                 break; 
