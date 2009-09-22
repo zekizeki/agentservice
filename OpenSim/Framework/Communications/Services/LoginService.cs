@@ -781,7 +781,7 @@ namespace OpenSim.Framework.Communications.Services
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
             bool passwordSuccess = false;
-            //m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.ID);
+            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.ID);
 
             // Web Login method seems to also occasionally send the hashed password itself
 
@@ -794,8 +794,8 @@ namespace OpenSim.Framework.Communications.Services
 
             string s = Util.Md5Hash(password + ":" + profile.PasswordSalt);
             // Testing...
-            //m_log.Info("[LOGIN]: SubHash:" + s + " userprofile:" + profile.passwordHash);
-            //m_log.Info("[LOGIN]: userprofile:" + profile.passwordHash + " SubCT:" + password);
+            m_log.Info("[LOGIN]: SubHash:" + s + " userprofile:" + profile.passwordHash);
+            m_log.Info("[LOGIN]: userprofile:" + profile.passwordHash + " SubCT:" + password);
 
             passwordSuccess = (profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
                                || profile.PasswordHash.Equals(password, StringComparison.InvariantCulture));
