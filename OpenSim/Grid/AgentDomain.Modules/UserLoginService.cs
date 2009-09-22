@@ -1317,7 +1317,15 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
 	       return responseMap;
 	       }
 	    // If we get here, now we check the password
-	    if (!AuthenticateUser(userProfile,authSecret))
+            // We do this by taking the MD5 hashed PW from the call, and rehashing it with a salt of string.empty() 
+
+ 	     string rehashedPW = Util.Md5Hash(authSecret + ":" + userProfile.PasswordSalt);
+            // Testing...
+	     m_log.InfoFormat(" Rehashed PW {0} Stored PW {1}",rehashedPW,userProfile.PasswordHash);
+             Boolean  passwordSuccess = (  userProfile.PasswordHash.Equals(rehashedPW.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                                        || userProfile.PasswordHash.Equals(authSecret, StringComparison.InvariantCulture) ) ;
+	       if (! passwordSuccess)
+
                {
 	       m_log.InfoFormat("[Agent Domain]: Authentication check of password failed for {0} {1} with a UUID of {2}",
 	                        loginFirstName,loginLastName, agentUUID);
