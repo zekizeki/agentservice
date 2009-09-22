@@ -88,7 +88,7 @@ namespace OpenSim.Grid.AgentDomain
 
         public OpenAD_Main()
         {
-            m_console = new LocalConsole("User");
+            m_console = new LocalConsole("AgentDomain/Service");
             MainConsole.Instance = m_console;
         }
 
