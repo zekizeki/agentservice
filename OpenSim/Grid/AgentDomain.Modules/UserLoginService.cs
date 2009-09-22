@@ -1290,7 +1290,11 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             string loginFirstName = identMap["first_name"].AsString(); 
             string loginLastName = identMap["last_name"].AsString(); 
 	    string adURL = "";
-            m_log.InfoFormat("login name is {0} {1}", loginFirstName,loginLastName); 
+	    OSDMap authMap = (OSDMAP) requestMap["authenticator"];
+	    string authAlgorithm = authMap["algorithim"].AsString();
+	    string authSecret = AuthMap["secret"].AsString();
+	    string authType = AuthMap["type"].AsString();
+	    m_log.InfoFormat("[Agent Domain]: AdLoginTest: login name is {0} {1} Auth Algo {2} Auth secret {3} Auth Type {4}", loginFirstName,loginLastName,authAlgorithm,authSecret,authType); 
             string capInfix = ""; 
             UUID agentUUID = m_uuid_table.lookupAgentUUIDByName(loginFirstName,loginLastName,m_userDataBaseService); 
             m_log.InfoFormat("UUID for {0} {1} is {2}",loginFirstName,loginLastName,agentUUID); 
