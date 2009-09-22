@@ -794,8 +794,8 @@ namespace OpenSim.Framework.Communications.Services
 
             string s = Util.Md5Hash(password + ":" + profile.PasswordSalt);
             // Testing...
-            m_log.Info("[LOGIN]: SubHash:" + s + " userprofile:" + profile.passwordHash);
-            m_log.Info("[LOGIN]: userprofile:" + profile.passwordHash + " SubCT:" + password);
+            m_log.Info("[LOGIN]: SubHash:" + s + " userprofile:" + profile.PasswordHash);
+            m_log.Info("[LOGIN]: userprofile:" + profile.PasswordHash + " SubCT:" + password);
 
             passwordSuccess = (profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
                                || profile.PasswordHash.Equals(password, StringComparison.InvariantCulture));
