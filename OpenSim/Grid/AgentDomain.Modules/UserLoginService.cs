@@ -1291,13 +1291,42 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             string loginLastName = identMap["last_name"].AsString(); 
 	    string adURL = "";
 	    OSDMap authMap = (OSDMap) requestMap["authenticator"];
-	    string authAlgorithm = authMap["algorithim"].AsString();
+	    string authAlgorithm = authMap["algorithm"].AsString();
 	    string authSecret = authMap["secret"].AsString();
 	    string authType = authMap["type"].AsString();
 	    m_log.InfoFormat("[Agent Domain]: AdLoginTest: login name is {0} {1} Auth Algo {2} Auth secret {3} Auth Type {4}", loginFirstName,loginLastName,authAlgorithm,authSecret,authType); 
-            string capInfix = ""; 
+            string capInfix = "";
+ 
+	    // Before we do anything else, do we know this user? Do they have a valid PW? if not, they get
+	    // dinged out early. 
+     
+
+	
             UUID agentUUID = m_uuid_table.lookupAgentUUIDByName(loginFirstName,loginLastName,m_userDataBaseService); 
             m_log.InfoFormat("UUID for {0} {1} is {2}",loginFirstName,loginLastName,agentUUID); 
+            UserProfileData userProfile;
+            userProfile = m_userManager.GetUserProfile(agentUUID);
+	    if (null == userProfile)
+	       {
+	       m_log.InfoFormat("[Agent Domain]: No user profile for {0} {1} with UUID of {2} rejecting login.",
+	                        loginFirstName,loginLastName, agentUUID);
+               responseMap["connected"] = OSD.FromBoolean(false); 
+               responseMap["authenticated"] = OSD.FromBoolean(false); 
+               responseMap["reason"] = OSD.FromString("Unknown user "+loginFirstName + " " + loginLastName + " with UUID "+agentUUID+".");
+	       responseMap["message"] = OSD.FromString("Please obtain a valid account on this Agent Domain");
+	       return responseMap;
+	       }
+	    // If we get here, now we check the password
+	    if (!AuthenticateUser(userProfile,authSecret))
+               {
+	       m_log.InfoFormat("[Agent Domain]: Authentication check of password failed for {0} {1} with a UUID of {2}",
+	                        loginFirstName,loginLastName, agentUUID);
+	       responseMap["connected"] = OSD.FromBoolean(false); 
+               responseMap["authenticated"] = OSD.FromBoolean(false); 
+               responseMap["reason"] = OSD.FromString("Invalid password for user "+loginFirstName + " " + loginLastName + " with UUID "+agentUUID+".");
+	       responseMap["message"] = OSD.FromString("Please check your password.");
+	       return responseMap;
+               }
             Agent_state_entry storedState = m_state_table.lookupAgentStateByUUID(agentUUID); 
             string agentCapability =""; 
             switch (storedState.agentState) 
