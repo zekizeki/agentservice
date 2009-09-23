@@ -1322,6 +1322,7 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
  	     string rehashedPW = Util.Md5Hash(authSecret + ":" + userProfile.PasswordSalt);
             // Testing...
 	     m_log.InfoFormat(" Rehashed PW {0} Stored PW {1}",rehashedPW,userProfile.PasswordHash);
+	     m_log.InfoFormat(" Pass in PW {0} ",authSecret);
              Boolean  passwordSuccess = (  userProfile.PasswordHash.Equals(rehashedPW.ToString(), StringComparison.InvariantCultureIgnoreCase)
                                         || userProfile.PasswordHash.Equals(authSecret, StringComparison.InvariantCulture) ) ;
 	       if (! passwordSuccess)
