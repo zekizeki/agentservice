@@ -99,6 +99,12 @@ namespace OpenSim.Grid.AgentDomain.Modules
 	// End top AD hacks
 
 
+	// ----------------------------------------------
+	//
+	// User Login Service Class ends here
+	//
+	// ----------------------------------------------
+
         public UserLoginService(UserDataBaseService dataBaseServer,
             UserManagerBase userManager, IInterServiceInventoryServices inventoryService,
             LibraryRootFolder libraryRootFolder,
@@ -124,6 +130,15 @@ namespace OpenSim.Grid.AgentDomain.Modules
         }
 
 
+	// -------
+	// Return a string of the current state of the agent domain
+	// ------
+
+	public string returnADStateString()
+	{
+	return m_state_table.returnADStateString();
+	}
+
 	// Grab host names for caps
         
         public void setupHostNames()
@@ -143,7 +158,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
 	// AD code goes in here for now
         // Once we get it working, more clean up
 	// ------------------------------------------
- // ---------------------------------------------------------------- 
+
+	 // ---------------------------------------------------------------- 
         // 
         // Helper to do the derez on logout work 
         // 

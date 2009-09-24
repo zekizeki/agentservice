@@ -99,7 +99,14 @@ public class NameUUIDEntry
 	       break;
 	       }
 	   } // End foreach
-         capToUUIDTable.Remove(theKey);
+	 if ("" == theKey)
+	    {
+	    m_log.InfoFormat("[Agent domain]: attempt to delete nonexistant agent with UUID {0} from caps table.");
+	    }
+	    else
+	    {
+            capToUUIDTable.Remove(theKey);
+	    }
 	}
 
 
@@ -413,6 +420,39 @@ public class ActiveAgentState
 	       return returnedState;
 
 	       } // end method 
+
+
+	public string returnADStateString()
+	{
+	string returnString = "Agent Domain Table/n";
+	                     
+        foreach (KeyValuePair<UUID,Agent_state_entry> kvp1 in agentStateTable)
+	   {
+	   string lineString = "";
+	   UUID agentUUID = kvp1.Key;
+           Agent_state_entry lineEntry = kvp1.Value;
+	   lineString = lineEntry.firstName + " " + lineEntry.lastName + "( " + agentUUID.ToString() + ")" ;
+	   switch (lineEntry.agentState)
+	          {
+		 case AgentADState.logged_in:
+	             lineString = lineString + "logged in at ";
+	             lineString = lineString + lineEntry.derezCap + " ";
+		      break;
+                 case AgentADState.logged_out: 	          
+                   lineString = lineString + "logged out";
+                   break;
+                 case AgentADState.unknown: 
+	           lineString = lineString + "unknown";
+	           break;
+	         default:
+	           lineString = lineString + "DEFAULT";
+	           break;
+		}
+	returnString = returnString + lineString + "/n";
+	}
+	return returnString;
+	}
+
 
 
  } // end of ActiveAgentState Class

@@ -143,7 +143,8 @@ namespace OpenSim.Grid.AgentDomain
 	public void handleLiveUsers(string module, string[] args)
 	{
 	m_log.Info("[Agent Domain]: Test hand live users command.");
-	
+	string stateString = m_loginService.returnADStateString();
+	m_log.InfoFormat("[Agent Domain]: live user states:/n{0}",stateString);
 	}
 
         #region Console Command Handlers
