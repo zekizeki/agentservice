@@ -1594,12 +1594,10 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
                 return responseMap;
             }
             
-            m_log.Info("[AGENT DOMAIN]: 1");
-            InventoryItemBase itemUpd = OSDToInventoryItemBase(requestMap);
-            m_log.Info("[AGENT DOMAIN]: 2");
-            // we need to get the item from inventory as the full item details do not get passed to us in the cap
+            
+            InventoryItemBase itemUpd = OSDToInventoryItemBase(requestMap);            // we need to get the item from inventory as the full item details do not get passed to us in the cap
             InventoryItemBase item = m_inventoryService.GetInventoryItem(itemUpd.ID);
-            m_log.Info("[AGENT DOMAIN]: 3");
+            
             if (item != null)
             {
             	item.Name = itemUpd.Name;
@@ -1626,13 +1624,15 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
                 // the assettype and assetid always come across as 000 curently
                 //m_log.Info("[AGENT DOMAIN]: updateInventory assettype is "+itemUpd.AssetType + "assetid is " + itemUpd.AssetID);
                 //item.AssetType = itemUpd.AssetType;
-                //item.AssetID = itemUpd.AssetID;
+                if(itemUpd.AssetID != new UUID())
+                {
+                	m_log.Info("[AGENT DOMAIN] updateInventory: updating asset ID of inventory item, new asset id is "+itemUpd.AssetID);	
+                	item.AssetID = itemUpd.AssetID;
+                }
             }
-			m_log.Info("[AGENT DOMAIN]: 4");
 			// call the inventory service to add it 
 			bool success = m_inventoryService.UpdateItem( item);
-            m_log.Info("[AGENT DOMAIN]: 5");
-            
+			            
             responseMap["success"] = OSD.FromBoolean(success);
             return responseMap;
             
