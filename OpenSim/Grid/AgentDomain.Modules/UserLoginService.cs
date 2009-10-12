@@ -1484,6 +1484,28 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             // TODO Rob need to track and remove this handler on derez
             m_httpServer.AddStreamHandler(new RestStreamHandler("POST", "/cap/agent/inventory/"+capSufix, webFetchInventoryDescendentsRequest));
             
+            // NOW TODO add inventory caps so the agent can see them
+            // [rob] add caps for the inventory reflector to use
+    	    string inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_create/"+capSufix;
+    	    capMap["inventory_create_cap"] = OSD.FromString(inventoryReflectCapString);
+    	    inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_update/"+capSufix;
+    	 	capMap["inventory_update_cap"] = OSD.FromString(inventoryReflectCapString);   
+            inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_move/"+capSufix;
+    	 	capMap["inventory_move_cap"] = OSD.FromString(inventoryReflectCapString);
+    	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_delete/"+capSufix;
+    	 	capMap["inventory_delete_cap"] = OSD.FromString(inventoryReflectCapString);
+    	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_create/"+capSufix;
+    	 	capMap["inventoryfolder_create_cap"] = OSD.FromString(inventoryReflectCapString);
+    	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_update/"+capSufix;
+    	 	capMap["inventoryfolder_update_cap"] = OSD.FromString(inventoryReflectCapString);
+    	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_move/"+capSufix;
+    	 	capMap["inventoryfolder_move_cap"] = OSD.FromString(inventoryReflectCapString);
+    	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_delete/"+capSufix;
+    	 	capMap["inventoryfolder_delete_cap"] = OSD.FromString(inventoryReflectCapString);  
+    	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/wearables/update/"+capSufix;
+    	 	capMap["wearables_update_cap"] = OSD.FromString(inventoryReflectCapString);
+            
+            
             responseMap["capabilities"] = capMap; 
             responseMap["first_name"] = OSD.FromString(agentState.firstName); 
             responseMap["last_name"] = OSD.FromString(agentState.lastName); 
