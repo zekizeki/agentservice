@@ -559,8 +559,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 defaultWearables[5].AssetID = new UUID("00000000-38f9-1111-024e-222222111120");
                 
                 // rob added these to have > 4 items
-                defaultWearables[2].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
-                defaultWearables[2].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
+                defaultWearables[2].ItemID  = new UUID("d342e6c1-b9d2-11dc-95ff-0800200c9a66");
+                defaultWearables[2].AssetID = new UUID("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
                  defaultWearables[3].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
                 defaultWearables[3].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
                  defaultWearables[6].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
