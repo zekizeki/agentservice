@@ -484,9 +484,6 @@ namespace OpenSim.Framework
         /// <returns>An IP address, or null</returns>
         public static IPAddress GetHostFromDNS(string dnsAddress)
         {
-            m_log.DebugFormat(
-                        "[UTIL]: GetHostFromDNS {0}",dnsAddress);
-                        
             // Is it already a valid IP? No need to look it up.
             IPAddress ipa;
             if (IPAddress.TryParse(dnsAddress, out ipa))

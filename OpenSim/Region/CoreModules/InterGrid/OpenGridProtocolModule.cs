@@ -280,7 +280,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
         public OSD ProcessAgentDomainMessage(string path, OSD request, string endpoint)
         {
-            // /agent/*
+            // 
 
             string[] pathSegments = path.Split('/');
             if (pathSegments.Length <= 1)
@@ -1099,7 +1099,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                         rezRespSeedCap = rezResponseMap["rez_avatar/rez"].AsString();
 
                     // DEPRECATED
-                    string rezRespSim_ip = rezResponseMap["sim_ip"].AsString();
+                    //string rezRespSim_ip = rezResponseMap["sim_ip"].AsString();
                     
                     string rezRespSim_host = rezResponseMap["sim_host"].AsString();
 
@@ -1121,7 +1121,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     responseMap["region_seed_capability"] = OSD.FromString(rezRespSeedCap);
 
                     // DEPRECATED
-                    responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
+                    //responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
                     
                     responseMap["sim_host"] = OSD.FromString(rezRespSim_host);
                     responseMap["sim_port"] = OSD.FromInteger(rrPort);

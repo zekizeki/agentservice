@@ -1601,29 +1601,31 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             if (item != null)
             {
             	item.Name = itemUpd.Name;
-                item.Description = itemUpd.Description;
-                m_log.Info("[AGENT DOMAIN] updateInventory: next permissions "+itemUpd.NextPermissions);
-                m_log.Info("[AGENT DOMAIN] updateInventory: CurrentPermissions "+itemUpd.CurrentPermissions);
-                m_log.Info("[AGENT DOMAIN] updateInventory: EveryOnePermissions "+itemUpd.EveryOnePermissions);
-                item.NextPermissions = itemUpd.NextPermissions;
-                item.CurrentPermissions = itemUpd.CurrentPermissions; 
-                item.EveryOnePermissions = itemUpd.EveryOnePermissions;
-                item.GroupPermissions = itemUpd.GroupPermissions;
+            	
+            	if(itemUpd.Description != null)
+                	item.Description = itemUpd.Description;
+                
+                if(itemUpd.NextPermissions != 0)
+                	item.NextPermissions = itemUpd.NextPermissions;
+                	
+                if(itemUpd.CurrentPermissions != 0)		
+                	item.CurrentPermissions = itemUpd.CurrentPermissions; 
+                	
+                if(itemUpd.EveryOnePermissions != 0)	
+                	item.EveryOnePermissions = itemUpd.EveryOnePermissions;
+                
+                if(itemUpd.GroupPermissions != 0)	
+                	item.GroupPermissions = itemUpd.GroupPermissions;
 
                 item.GroupID = itemUpd.GroupID;
                 item.GroupOwned = itemUpd.GroupOwned;
                 item.CreationDate = itemUpd.CreationDate;
                 // The client sends zero if its newly created?
 
-                if (itemUpd.CreationDate == 0)
-                    item.CreationDate = Util.UnixTimeSinceEpoch();
-                else
-                    item.CreationDate = itemUpd.CreationDate;
-
-                item.InvType = itemUpd.InvType;
+                //item.InvType = itemUpd.InvType;
                 item.SalePrice = itemUpd.SalePrice;
             	item.SaleType = itemUpd.SaleType;
-                item.Flags = itemUpd.Flags;
+                //item.Flags = itemUpd.Flags;
                 // the assettype and assetid always come across as 000 curently
                 //m_log.Info("[AGENT DOMAIN]: updateInventory assettype is "+itemUpd.AssetType + "assetid is " + itemUpd.AssetID);
                 //item.AssetType = itemUpd.AssetType;
