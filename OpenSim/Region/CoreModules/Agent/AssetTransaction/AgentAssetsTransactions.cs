@@ -214,6 +214,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 }
 
                 IInventoryService invService = Manager.MyScene.InventoryService;
+                Manager.MyScene.EventManager.TriggerOnInventoryItemUpdated(item);
                 invService.UpdateItem(item);
             }
         }

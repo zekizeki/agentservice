@@ -63,6 +63,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             scene.EventManager.OnClientConnect += OnClientConnect;
             scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
             scene.EventManager.OnNewInventoryItemCreated += NewInventoryItem;
+            scene.EventManager.OnInventoryItemUpdated += InventoryItemUpdated;
             
         }
         
@@ -305,6 +306,28 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
         }
         
+        public void InventoryItemUpdated(InventoryItemBase item)
+        {
+             m_log.Debug("[OGP InventoryReflector]: InventoryItemUpdated " + item.Name + " for owner " + item.Owner); 
+             
+            // check that this is an OGP user before we reflect the event
+            if(m_ogp.isOGPUser(item.Owner))
+            {
+                string inventoryUpdateCap = m_ogp.GetInventoryUpdateCap(item.Owner);
+            
+                try
+                {
+                    OSDMap requestMap = convertInventoryItemToOSD(item);
+                    SendRequest(requestMap, inventoryUpdateCap);
+                }
+                catch (WebException e)
+                {
+                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}",
+                         e.Source, e.Message);
+                }
+            }
+               
+        }
         
         
         void UpdateInventoryItem(
@@ -437,6 +460,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             requestMap["GroupID"] = OSD.FromString(invItem.GroupID.ToString());
             requestMap["ID"] = OSD.FromString(invItem.ID.ToString());
             requestMap["AssetID"] = OSD.FromString(invItem.AssetID.ToString());
+             m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: asset id {0}",invItem.AssetID.ToString());
             requestMap["AssetType"] = OSD.FromInteger(invItem.AssetType);
             requestMap["Folder"] = OSD.FromString(invItem.Folder.ToString());
             requestMap["Name"] = OSD.FromString(invItem.Name);
@@ -452,6 +476,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
             requestMap["CreationDate"] = OSD.FromInteger((int)invItem.CreationDate);
             requestMap["GroupOwned"] = OSD.FromInteger(0);
             requestMap["Flags"] = OSD.FromInteger((uint)invItem.Flags);
+            
+            
             
             return requestMap;
             

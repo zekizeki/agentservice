@@ -1602,6 +1602,9 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             {
             	item.Name = itemUpd.Name;
                 item.Description = itemUpd.Description;
+                m_log.Info("[AGENT DOMAIN] updateInventory: next permissions "+itemUpd.NextPermissions);
+                m_log.Info("[AGENT DOMAIN] updateInventory: CurrentPermissions "+itemUpd.CurrentPermissions);
+                m_log.Info("[AGENT DOMAIN] updateInventory: EveryOnePermissions "+itemUpd.EveryOnePermissions);
                 item.NextPermissions = itemUpd.NextPermissions;
                 item.CurrentPermissions = itemUpd.CurrentPermissions; 
                 item.EveryOnePermissions = itemUpd.EveryOnePermissions;
