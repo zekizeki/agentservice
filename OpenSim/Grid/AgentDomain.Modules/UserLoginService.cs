@@ -561,22 +561,22 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 // rob added these to have > 4 items
                 defaultWearables[2].ItemID  = new UUID("d342e6c1-b9d2-11dc-95ff-0800200c9a66");
                 defaultWearables[2].AssetID = new UUID("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
-                 //defaultWearables[3].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
-                //defaultWearables[3].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
-                 //defaultWearables[6].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
-                //defaultWearables[6].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
-                 //defaultWearables[7].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
-                //defaultWearables[7].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
-                 //defaultWearables[8].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
-                //defaultWearables[8].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
-                 //defaultWearables[9].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
-                //defaultWearables[9].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
-                 //defaultWearables[10].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
-                //defaultWearables[10].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
-                 //defaultWearables[11].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
-                //defaultWearables[11].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
-                 //defaultWearables[12].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
-                //defaultWearables[12].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
+                 defaultWearables[3].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
+                defaultWearables[3].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
+                 defaultWearables[6].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
+                defaultWearables[6].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
+                 defaultWearables[7].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
+                defaultWearables[7].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
+                 defaultWearables[8].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
+                defaultWearables[8].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
+                 defaultWearables[9].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
+                defaultWearables[9].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
+                 defaultWearables[10].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
+                defaultWearables[10].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
+                 defaultWearables[11].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
+                defaultWearables[11].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
+                 defaultWearables[12].ItemID  = new UUID("00000000-0000-0000-0000-000000000000");
+                defaultWearables[12].AssetID = new UUID("00000000-0000-0000-0000-000000000000");
                 
                 
                 
