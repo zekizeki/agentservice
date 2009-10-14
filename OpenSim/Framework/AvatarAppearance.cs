@@ -262,7 +262,7 @@ namespace OpenSim.Framework
             // TODO: Figure out better values then 'fat scientist 150' or 'alien 0'
             for (int i = 0; i < VISUALPARAM_COUNT; i++)
             {
-                vparams[i] = 150;
+                vparams[i] = 100;
             }
         }
 
