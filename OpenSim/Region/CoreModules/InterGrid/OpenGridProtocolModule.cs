@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -40,11 +41,17 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
+using OpenSim.Framework.Communications;
+using OpenSim.Grid.Communications.OGS1;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
 using OSDArray=OpenMetaverse.StructuredData.OSDArray;
 using OSDMap=OpenMetaverse.StructuredData.OSDMap;
+
+
+
+
 
 namespace OpenSim.Region.CoreModules.InterGrid
 {
@@ -74,12 +81,29 @@ namespace OpenSim.Region.CoreModules.InterGrid
         public int src_parent_estate_id;
         public bool visible_to_parent;
         public string teleported_into_region;
+	    public UUID inventory_root;
+	    public ArrayList inventory_skeleton;
+	    public AvatarWearable[] avatar_wearables;
+	    public string inventory_create_cap;
+	    public string inventory_update_cap;
+	    
+	    public string inventory_move_cap;
+	    public string inventory_delete_cap;
+	    public string inventoryfolder_create_cap;
+	    public string inventoryfolder_update_cap;
+	    public string inventoryfolder_move_cap;
+	    public string inventoryfolder_delete_cap;
+	    public string wearables_update_cap;
+	    
+	    
+	    
     }
     
     public class OpenGridProtocolModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<Scene> m_scene = new List<Scene>();
+        private InventoryReflector m_reflector;
 
         private Dictionary<string, AgentCircuitData> CapsLoginID = new Dictionary<string, AgentCircuitData>();
         private Dictionary<UUID, OGPState> m_OGPState = new Dictionary<UUID, OGPState>();
@@ -92,6 +116,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
         private bool httpSSL = false;
         private uint httpsslport = 0;
         private bool GridMode = false;
+        private string m_inventoryServerURL="";
+        private IClientAPI m_currentClient;
 
         #region IRegionModule Members
 
@@ -112,6 +138,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
             try
             {
                 httpcfg = config.Configs["Network"];
+                
+                // get the url for the inventory service
+                m_inventoryServerURL = httpcfg.GetString("inventory_server_url","");
             }
             catch (NullReferenceException)
             {
@@ -142,7 +171,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     lock (m_scene)
                     {
                         if (m_scene.Count == 0)
-                        {
+                           {
                             MainServer.Instance.AddLLSDHandler("/agent/", ProcessAgentDomainMessage);
                             MainServer.Instance.AddLLSDHandler("/", ProcessRegionDomainSeed);
                             try
@@ -197,7 +226,20 @@ namespace OpenSim.Region.CoreModules.InterGrid
         
         public void PostInitialise()
         {
+             m_log.Debug("[OGP]: PostInitialise");
+            // listen for client connect events so we can send the wearables (need to check this is an OGP client connecting)
+            Scene region = GetRootScene();
+            if (region == null)
+	       {
+               m_log.Error("[OGP]: Null root scene. Inventory Reflector will not be created.");
+               }
+               else 
+               {
+               m_reflector = new InventoryReflector(region,this);
+               }
         }
+        
+  
 
         public void Close()
         {
@@ -238,7 +280,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
         public OSD ProcessAgentDomainMessage(string path, OSD request, string endpoint)
         {
-            // /agent/*
+            // 
 
             string[] pathSegments = path.Split('/');
             if (pathSegments.Length <= 1)
@@ -285,6 +327,10 @@ namespace OpenSim.Region.CoreModules.InterGrid
             }
             //return null;
         }
+
+// -----------------------------------------------------------------------------------------------
+// 
+// -----------------------------------------------------------------------------------------------
 
         private OSD GenerateRezAvatarRequestMessage(string regionname)
         {
@@ -353,11 +399,15 @@ namespace OpenSim.Region.CoreModules.InterGrid
             return responseMap;
         }
 
-        // Using OpenSim.Framework.Capabilities.Caps here one time..
+	// -----------------------------------------------------------------------------------
+	//
+	// ------------------------------------------------------------------------------------
+
+        // Using OpenSim.Framework.Communications.Capabilities.Caps here one time..   
         // so the long name is probably better then a using statement
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            /* If we ever want to register our own caps here....
+            /* If we ever want to register our own caps here....    
              * 
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler("CAPNAME",
@@ -373,9 +423,29 @@ namespace OpenSim.Region.CoreModules.InterGrid
              */
         }
 
+// temp hack we need to pass these visual params from the agentservice
+
+
+ private static byte[] GetDefaultVisualParams()
+        {
+            byte[] visualParams;
+            visualParams = new byte[218];
+            for (int i = 0; i < 218; i++)
+            {
+                visualParams[i] = 100;
+            }
+            return visualParams;
+        }
+
+ 	// -----------------------------------
+	//
+	// Request REZ Avatar method
+	// 
+	// ---------------------------------
+
         public OSD RequestRezAvatarMethod(string path, OSD request)
         {
-            //m_log.Debug("[REQUESTREZAVATAR]: " + request.ToString());
+            m_log.Debug("[REQUESTREZAVATAR]: " + request.ToString());
 
             OSDMap requestMap = (OSDMap)request;
 
@@ -418,7 +488,18 @@ namespace OpenSim.Region.CoreModules.InterGrid
             FirstName = FirstNamePrefix + FirstName;
             LastName = LastName + LastNameSuffix;
 
+
+	    string invURI = requestMap["inventory_resolver_cap"].AsString();
+	    string invReflectorURI = requestMap["inventory_create_cap"].AsString(); 
+
+	    m_log.InfoFormat("[OGP]: inventory resolver cap is {0}",invURI);
+	    m_log.InfoFormat("[OGP]: inventory reflector cap is {0}",invReflectorURI);
+
             OGPState userState = GetOGPState(LocalAgentID);
+           
+	    UUID secureSessionID = requestMap["secure_session_id"].AsUUID();
+	    uint circuitCode = (uint) requestMap["circuit_code"].AsInteger();
+	    
 
             userState.first_name = requestMap["first_name"].AsString();
             userState.last_name = requestMap["last_name"].AsString();
@@ -435,9 +516,37 @@ namespace OpenSim.Region.CoreModules.InterGrid
             userState.src_estate_id = requestMap["src_estate_id"].AsInteger();
             userState.local_agent_id = LocalAgentID;
             userState.teleported_into_region = reg.RegionName.ToLower();
-
+            userState.inventory_create_cap = invReflectorURI;
+            userState.inventory_update_cap = requestMap["inventory_update_cap"].AsString();
+            userState.inventory_move_cap = requestMap["inventory_move_cap"].AsString();
+            userState.inventory_delete_cap = requestMap["inventory_delete_cap"].AsString();
+            userState.inventoryfolder_create_cap = requestMap["inventoryfolder_create_cap"].AsString();
+            userState.inventoryfolder_update_cap = requestMap["inventoryfolder_update_cap"].AsString();
+            userState.inventoryfolder_move_cap = requestMap["inventoryfolder_move_cap"].AsString();
+            userState.inventoryfolder_delete_cap = requestMap["inventoryfolder_delete_cap"].AsString();
+            userState.wearables_update_cap = requestMap["wearables_update_cap"].AsString();
+            
+           
+        
+            // (Rob)get the wearables sent
+            //m_log.InfoFormat("[OGP] Avatar Wearables {0}",requestMap["avatar_wearables"]);
+            
+            OSDArray wearables = (OSDArray)requestMap["avatar_wearables"];
+	        AvatarWearable[] wearableArray = new AvatarWearable[13];  
+            int count =0;
+            foreach (OSDMap wble in wearables)
+            {
+                 AvatarWearable aWearable = new AvatarWearable(wble["ItemID"].AsUUID(), wble["AssetID"].AsUUID());
+                 wearableArray[count] = aWearable;
+                 count++;
+            }    
+         
+            userState.avatar_wearables = wearableArray;
+            // (Rob) process and store the wearables in the user state
+            
+            m_log.Info("[OGP]: Debug 1");        
             UpdateOGPState(LocalAgentID, userState);
-
+            m_log.Info("[OGP]: Debug 2");        
             OSDMap responseMap = new OSDMap();
 
             if (RemoteAgentID == UUID.Zero)
@@ -478,11 +587,13 @@ namespace OpenSim.Region.CoreModules.InterGrid
             agentData.BaseFolder = UUID.Zero;
             agentData.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             agentData.child = false;
-            agentData.circuitcode = (uint)(Util.RandomClass.Next());
+// dwl FIX TEST 1
+//          agentData.circuitcode = (uint)(Util.RandomClass.Next());
+	    agentData.circuitcode = circuitCode;
             agentData.firstname = FirstName;
             agentData.lastname = LastName;
-            agentData.SecureSessionID = UUID.Random();
-            agentData.SessionID = UUID.Random();
+            agentData.SecureSessionID = secureSessionID;
+            //agentData.SessionID = UUID.Random();
             agentData.startpos = new Vector3(128f, 128f, 100f);
 
             // Pre-Fill our region cache with information on the agent.
@@ -498,8 +609,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
             useragent.Region = reg.originRegionID;
             useragent.SecureSessionID = agentData.SecureSessionID;
             useragent.SessionID = agentData.SessionID;
-
+            m_log.Info("[OGP]: Debug 3");        
             UserProfileData userProfile = new UserProfileData();
+            m_log.Info("[OGP]: Debug 4");        
             userProfile.AboutText = "OGP User";
             userProfile.CanDoMask = (uint)0;
             userProfile.Created = Util.UnixTimeSinceEpoch();
@@ -527,7 +639,61 @@ namespace OpenSim.Region.CoreModules.InterGrid
             userProfile.Partner = UUID.Zero;
             userProfile.PasswordHash = "$1$";
             userProfile.PasswordSalt = "";
-            userProfile.RootInventoryFolderID = UUID.Zero;
+	    userProfile.UserInventoryResolverURI  = invURI; 
+	    // Get a inventory 
+            // userProfile.RootInventoryFolderID = UUID.Zero;
+            
+            
+            // TODO (Rob) we shouldnt need all this inventory code here.
+            /*
+            // check if we're in standalone or grid mode, then fetch the appropriate service
+            m_log.Info("[OGP]: Debug 5");        
+            IInterServiceInventoryServices m_interServiceInventoryService = null;
+            if(GridMode)
+            {
+            m_log.Info("[OGP]: Debug 5A");        
+                m_interServiceInventoryService = new OGS1InterServiceInventoryService(new System.Uri(m_inventoryServerURL));
+                //RegisterInterface<IInterServiceInventoryServices>(m_interServiceInventoryService);   
+            }
+            else
+            {
+            m_log.Info("[OGP]: Debug 5B");        
+                m_interServiceInventoryService = homeScene.CommsManager.InterServiceInventoryService;
+            }
+            m_log.Info("[OGP]: Debug 5C");        
+	         List<InventoryFolderBase> folders = m_interServiceInventoryService.GetInventorySkeleton(RemoteAgentID);
+            m_log.Info("[OGP]: Debug 5D");        
+            // If we have user auth but no inventory folders for some reason, create a new set of folders.
+            if (null == folders || 0 == folders.Count)
+            {      
+	        m_log.WarnFormat("No inventory for agent {0} creating",RemoteAgentID.ToString());
+                m_interServiceInventoryService.CreateNewUserInventory(RemoteAgentID);
+                folders = m_interServiceInventoryService.GetInventorySkeleton(RemoteAgentID);
+            }
+            m_log.Info("[OGP]: Debug 6");        
+            UUID rootID = UUID.Zero;
+            ArrayList AgentInventoryArray = new ArrayList();
+            Hashtable TempHash;
+            foreach (InventoryFolderBase InvFolder in folders)
+            {
+                if (InvFolder.ParentID == UUID.Zero)
+                {
+                    rootID = InvFolder.ID;
+                }
+                TempHash = new Hashtable();
+                TempHash["name"] = InvFolder.Name;
+                TempHash["parent_id"] = InvFolder.ParentID.ToString();
+                TempHash["version"] = (Int32)InvFolder.Version;
+                TempHash["type_default"] = (Int32)InvFolder.Type;
+                TempHash["folder_id"] = InvFolder.ID.ToString();
+                AgentInventoryArray.Add(TempHash);
+                          	
+            }
+            userProfile.RootInventoryFolderID = rootID;
+	    userState.inventory_root = rootID;
+	    userState.inventory_skeleton = AgentInventoryArray;
+	    */
+            UpdateOGPState(LocalAgentID, userState);
             userProfile.SurName = agentData.lastname;
             userProfile.UserAssetURI = homeScene.CommsManager.NetworkServersInfo.AssetURL;
             userProfile.UserFlags = 0;
@@ -537,50 +703,71 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
             // Do caps registration
             // get seed capagentData.firstname = FirstName;agentData.lastname = LastName;
+            m_log.Info("[OGP]: Debug 7");        
             if (homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID) == null && !GridMode)
             {
+                m_log.Info("[OGP]: Debug 7A");        
                 homeScene.CommsManager.UserAdminService.AddUser(
                     agentData.firstname, agentData.lastname, CreateRandomStr(7), "", 
                     homeScene.RegionInfo.RegionLocX, homeScene.RegionInfo.RegionLocY, agentData.AgentID);
                 
                 UserProfileData userProfile2 = homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID);
                 if (userProfile2 != null)
-                {
+                {   
+	            m_log.Info("[OGP]: Debug 7B");        
                     userProfile = userProfile2;
                     userProfile.AboutText = "OGP USER";
                     userProfile.FirstLifeAboutText = "OGP USER";
                     homeScene.CommsManager.UserService.UpdateUserProfile(userProfile);
                 }
             }
+            m_log.Info("[OGP]: Debug 8");        
+            //homeScene.CommsManager.AvatarService.GetUserAppearance(agentData.AgentID);
+            m_log.Debug("[OGP] adding wearables from agent service along with default shape");
+            AvatarAppearance appearance = new AvatarAppearance(agentData.AgentID, wearableArray, GetDefaultVisualParams()); 
+            homeScene.CommsManager.AvatarService.UpdateUserAppearance(agentData.AgentID, appearance);
+            agentData.Appearance = appearance;
+             homeScene.UpdateCircuitData(agentData);
+            
             
             // Stick our data in the cache so the region will know something about us
-            homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(userProfile);
-
+//            homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(agentData.AgentID, userProfile);
+            homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(userProfile); // Did not help
+            m_log.Info("[OGP]: Debug 9");        
             // Call 'new user' event handler
+//          homeScene.NewUserConnection(agentData); OLD Code DWL
             string reason;
-            if (!homeScene.NewUserConnection(agentData, out reason))
-            {
+//           if (!homeScene.NewUserConnection(agentData, out reason))
+//            {
+//                responseMap["connect"] = OSD.FromBoolean(false);
+//                responseMap["message"] = OSD.FromString(String.Format("Connection refused: {0}", reason));
+//                m_log.ErrorFormat("[OGP]: rez_avatar/request failed: {0}", reason);
+//                return responseMap;
+//           }
+            //string raCap = string.Empty;
+// DWL HACKERY HERE
+	m_log.InfoFormat("[OGP]: DWL test 1 secure session ID {0} circuit {1}",secureSessionID,circuitCode);
+	if (!homeScene.NewUserConnection(agentData, out reason) )
+           {
                 responseMap["connect"] = OSD.FromBoolean(false);
                 responseMap["message"] = OSD.FromString(String.Format("Connection refused: {0}", reason));
                 m_log.ErrorFormat("[OGP]: rez_avatar/request failed: {0}", reason);
                 return responseMap;
-            }
-
-
-            //string raCap = string.Empty;
-
+           }
+// END of this DWL hack 
+            m_log.Info("[OGP]: Debug 10");        
             UUID AvatarRezCapUUID = LocalAgentID;
             string rezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar/rez";
             string derezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar/derez";
             // Get a reference to the user's cap so we can pull out the Caps Object Path
             Caps userCap 
                 = homeScene.CapsModule.GetCapsHandlerForUser(agentData.AgentID);
-
+            m_log.Info("[OGP]: Debug 11");        
             string rezHttpProtocol = "http://";
             string regionCapsHttpProtocol = "http://";
             string httpaddr = reg.ExternalHostName;
             string urlport = reg.HttpPort.ToString();
-
+            m_log.Info("[OGP]: Debug 11A");        
             if (httpSSL)
             {
                 rezHttpProtocol = "https://";
@@ -590,16 +777,19 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 if (httpsCN.Length > 0)
                     httpaddr = httpsCN;
             }
-            
-            // DEPRECATED
-            responseMap["seed_capability"] 
-                = OSD.FromString(
-                    regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + CapsUtil.GetCapsSeedPath(userCap.CapsObjectPath));
-            
-            // REPLACEMENT
-            responseMap["region_seed_capability"] 
-                = OSD.FromString(
-                    regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + CapsUtil.GetCapsSeedPath(userCap.CapsObjectPath));
+
+	   string capsPart= "";
+           m_log.Info("[OGP]: Debug 11B");        
+
+	   try {
+           capsPart = CapsUtil.GetCapsSeedPath(userCap.CapsObjectPath);
+                }
+           catch (Exception e)
+                      {
+                     m_log.InfoFormat("[OGP]: Fail exception on getCapsSetPath {0}",e);
+                       }                            
+            m_log.Info("[OGP]: Debug 11C");        
+            responseMap["region_seed_capability"] =OSD.FromString( regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + capsPart);
 
             responseMap["rez_avatar"] = OSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);
             responseMap["rez_avatar/rez"] = OSD.FromString(rezHttpProtocol + httpaddr + ":" + urlport + rezAvatarPath);
@@ -607,6 +797,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
             // Add the user to the list of CAPS that are outstanding.
             // well allow the caps hosts in this dictionary
+            m_log.Info("[OGP]: Debug 12");        
             lock (CapsLoginID)
             {
                 if (CapsLoginID.ContainsKey(rezAvatarPath))
@@ -622,9 +813,15 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 }
             }
             
-            //m_log.Debug("Response:" + responseMap.ToString());
+            m_log.Debug("Response:" + responseMap.ToString());
+            m_log.Info("[OGP]: Debug 13");        
             return responseMap;
         }
+
+
+	// -------------------------------------------------
+        // Rez Avatar Method 
+	// -------------------------------------------------
 
         public OSD RezAvatarMethod(string path, OSD request)
         {
@@ -640,9 +837,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 OSDMap requestMap = (OSDMap)request;
 
                 // take these values to start.  There's a few more
-                UUID SecureSessionID=requestMap["secure_session_id"].AsUUID();
-                UUID SessionID = requestMap["session_id"].AsUUID();
-                int circuitcode = requestMap["circuit_code"].AsInteger();
+                UUID secureSessionID=requestMap["secure_session_id"].AsUUID();
+                UUID sessionID = requestMap["session_id"].AsUUID();
+                int circuitCode = requestMap["circuit_code"].AsInteger();
                 OSDArray Parameter = new OSDArray();
                 if (requestMap.ContainsKey("parameter"))
                 {
@@ -682,8 +879,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     }
                 }
                 //Update our Circuit data with the real values
-                userData.SecureSessionID = SecureSessionID;
-                userData.SessionID = SessionID;
+                userData.SecureSessionID = secureSessionID;
+                userData.SessionID = sessionID;
 
                 OGPState userState = GetOGPState(userData.AgentID);
 
@@ -700,17 +897,21 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     // Get a referenceokay -  to their Cap object so we can pull out the capobjectroot
                     Caps userCap 
                         = homeScene.CapsModule.GetCapsHandlerForUser(userData.AgentID);
+		    if (userCap == null)
+                        {
+                        m_log.Info("Null user cap in rez avatar");
+                        }
 
                     //Update the circuit data in the region so this user is authorized
                     homeScene.UpdateCircuitData(userData);
-                    homeScene.ChangeCircuitCode(userData.circuitcode,(uint)circuitcode);
+                    homeScene.ChangeCircuitCode(userData.circuitcode,(uint)circuitCode);
 
                     // Load state
                     
 
                     // Keep state changes
                     userState.first_name = requestMap["first_name"].AsString();
-                    userState.secure_session_id = requestMap["secure_session_id"].AsUUID();
+                    userState.secure_session_id = secureSessionID;
                     userState.age_verified = requestMap["age_verified"].AsBoolean();
                     userState.region_id = homeScene.RegionInfo.originRegionID; // replace 0000000 with our regionid
                     userState.transacted = requestMap["transacted"].AsBoolean();
@@ -750,14 +951,17 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     uint fooY = reg.RegionLocY;
                     m_log.InfoFormat("[OGP]: region x({0}) region y({1})", fooX, fooY);
                     m_log.InfoFormat("[OGP]: region http {0} {1}", reg.ServerURI, reg.HttpPort);
-                    m_log.InfoFormat("[OGO]: region UUID {0} ", reg.RegionID);
+                    m_log.InfoFormat("[OGP]: region UUID {0} ", reg.RegionID);
 
                     // Convert the X and Y position to LL space
                     responseMap["region_x"] = OSD.FromInteger(fooX * (uint)Constants.RegionSize); // convert it to LL X
                     responseMap["region_y"] = OSD.FromInteger(fooY * (uint)Constants.RegionSize); // convert it to LL Y
 
                     // Give em a new seed capability
-                    responseMap["seed_capability"] = OSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + "/CAPS/" + userCap.CapsObjectPath + "0000/");
+	            m_log.Info("[OGP]: rez 0");
+		     string cop = userCap.CapsObjectPath ;
+                    m_log.Info("[OGP]: rez 1");
+                    responseMap["seed_capability"] = OSD.FromString("http://" + reg.ExternalHostName + ":" + reg.HttpPort + "/CAPS/" + cop+ "0000/");
                     responseMap["region"] = OSD.FromUUID(reg.originRegionID);
                     responseMap["look_at"] = LookAtArray;
 
@@ -767,17 +971,48 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     // DEPRECATED
                     responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
 
-                    responseMap["session_id"] = OSD.FromUUID(SessionID);
-                    responseMap["secure_session_id"] = OSD.FromUUID(SecureSessionID);
-                    responseMap["circuit_code"] = OSD.FromInteger(circuitcode);
+                    responseMap["session_id"] = OSD.FromUUID(sessionID);
+                    responseMap["secure_session_id"] = OSD.FromUUID(secureSessionID);
+                    responseMap["circuit_code"] = OSD.FromInteger(circuitCode);
 
                     responseMap["position"] = PositionArray;
 
                     responseMap["region_id"] = OSD.FromUUID(reg.originRegionID);
 
                     responseMap["sim_access"] = OSD.FromString("Mature");
+                    
+                    m_log.Info("[OGP]: rez 2");
+                    
+                    // (Rob) inventory skeleton is now fetched direct from the Agent Domains inventory store.
+                    // and inserted into the response
+                    /*
+                    responseMap["inventory_root"] = OSD.FromUUID(userState.inventory_root);
+		    // now copy the skeleton in 
+		    OSDArray skelArray = new OSDArray();
+		    ArrayList skeletonArray = userState.inventory_skeleton;
+                    foreach (Hashtable skeletonRow in skeletonArray)
+	               {
+                       OSDMap osdRow = new OSDMap();
+		       string tName = (string)skeletonRow["name"];
+	               osdRow["name"] = OSD.FromString(tName);
+		       osdRow["version"] = OSD.FromInteger((int)skeletonRow["version"]);
+		       string pString = (string)skeletonRow["parent_id"];
+		       UUID parentUUID = new UUID(pString);
+	               osdRow["parent_id"] = OSD.FromUUID(parentUUID);
+		       osdRow["type_default"] = OSD.FromInteger((int)skeletonRow["type_default"]);
+		       osdRow["folder_id"] = OSD.FromUUID(new UUID((string)skeletonRow["folder_id"]) );
+		       skelArray.Add(osdRow);
+                       }
+	            
+	            
+                     m_log.Info("[OGP]: rez 3");    
+	            //responseMap["inventory_skeleton"] = skelArray;
+                    
+*/
+		
 
-                    responseMap["connect"] = OSD.FromBoolean(true);
+		    // Add in the inventory stuff DWL 
+		   responseMap["connect"] = OSD.FromBoolean(true);
 
                    
 
@@ -864,7 +1099,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                         rezRespSeedCap = rezResponseMap["rez_avatar/rez"].AsString();
 
                     // DEPRECATED
-                    string rezRespSim_ip = rezResponseMap["sim_ip"].AsString();
+                    //string rezRespSim_ip = rezResponseMap["sim_ip"].AsString();
                     
                     string rezRespSim_host = rezResponseMap["sim_host"].AsString();
 
@@ -886,12 +1121,12 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     responseMap["region_seed_capability"] = OSD.FromString(rezRespSeedCap);
 
                     // DEPRECATED
-                    responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
+                    //responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
                     
                     responseMap["sim_host"] = OSD.FromString(rezRespSim_host);
                     responseMap["sim_port"] = OSD.FromInteger(rrPort);
-                    responseMap["region_x"] = OSD.FromInteger(rrX);
-                    responseMap["region_y"] = OSD.FromInteger(rrY);
+                    responseMap["region_x"] = OSD.FromInteger(rrX );
+                    responseMap["region_y"] = OSD.FromInteger(rrY );
                     responseMap["region_id"] = OSD.FromUUID(rrRID);
                     responseMap["sim_access"] = OSD.FromString(rrAccess);
 
@@ -1148,10 +1383,12 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
         private OGPState GetOGPState(UUID agentId)
         {
+            m_log.Info("[OGP] GetOGPState " + agentId);
             lock (m_OGPState)
             {
                 if (m_OGPState.ContainsKey(agentId))
                 {
+                    
                     return m_OGPState[agentId];
                 }
                 else
@@ -1160,6 +1397,75 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 }
             }
         }
+        
+        public bool isOGPUser(UUID agentId)
+        {
+            bool isUser=false;
+            lock (m_OGPState)
+            {
+                if (m_OGPState.ContainsKey(agentId))
+                    isUser = true;
+                    
+            }
+            
+            return isUser;
+        }
+        
+        public string GetInventoryCreateCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.inventory_create_cap; 
+        }
+        
+        public string GetInventoryUpdateCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.inventory_update_cap; 
+        }
+        
+        public string GetInventoryMoveCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.inventory_move_cap; 
+        }
+        
+        public string GetInventoryDeleteCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.inventory_delete_cap; 
+        }
+        
+        public string GetInventoryFolderCreateCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.inventoryfolder_create_cap; 
+        }
+        
+        public string GetInventoryFolderUpdateCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.inventoryfolder_update_cap; 
+        }
+        
+        public string GetInventoryFolderMoveCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.inventoryfolder_move_cap; 
+        }
+        
+        public string GetInventoryFolderDeleteCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.inventoryfolder_delete_cap; 
+        }
+        
+        public string GetWearablesUpdateCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.wearables_update_cap; 
+        }
+        
+        
 
         public void DeleteOGPState(UUID agentId)
         {
@@ -1227,6 +1533,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             }
             return returnstring;
         }
+
         // Temporary hack to allow teleporting to and from Vaak
         private static bool customXertificateValidation(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
         {
