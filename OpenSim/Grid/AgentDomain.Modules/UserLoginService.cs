@@ -513,7 +513,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 appearance = new AvatarAppearance(agentUUID, GetDefaultWearables(), GetDefaultVisualParams());
                 
                 // save the appearance
-                //m_userDataBaseService.UpdateUserAppearance(agentUUID,appearance);
+                m_userDataBaseService.UpdateUserAppearance(agentUUID,appearance);
                 
             }
             AvatarWearable[] wearables = appearance.Wearables;
