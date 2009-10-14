@@ -42,7 +42,6 @@ using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Communications;
-using OpenSim.Grid.Communications.OGS1;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
@@ -639,7 +638,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             userProfile.Partner = UUID.Zero;
             userProfile.PasswordHash = "$1$";
             userProfile.PasswordSalt = "";
-	    userProfile.UserInventoryResolverURI  = invURI; 
+	    // userProfile.UserInventoryResolverURI  = invURI; 
 	    // Get a inventory 
             // userProfile.RootInventoryFolderID = UUID.Zero;
             

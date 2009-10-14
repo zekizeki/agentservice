@@ -62,8 +62,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
             
             scene.EventManager.OnClientConnect += OnClientConnect;
             scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
-            scene.EventManager.OnNewInventoryItemCreated += NewInventoryItem;
-            scene.EventManager.OnInventoryItemUpdated += InventoryItemUpdated;
+            //scene.EventManager.OnNewInventoryItemCreated += NewInventoryItem;
+            //scene.EventManager.OnInventoryItemUpdated += InventoryItemUpdated;
             
         }
         
