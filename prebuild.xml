@@ -1355,7 +1355,8 @@
          <Match pattern="*.cs" recurse="true"/>
        </Files>
     </Project>
-
+    
+ 
     <Project frameworkVersion="v3_5" name="OpenSim.Services.AuthenticationService" path="OpenSim/Services/AuthenticationService" type="Library">
       <Configuration name="Debug">
         <Options>

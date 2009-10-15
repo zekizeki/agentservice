@@ -98,7 +98,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 	    
     }
     
-    public class OpenGridProtocolModule : IRegionModule
+    public class OpenGridProtocolModule : IRegionModule, IOGPModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<Scene> m_scene = new List<Scene>();
@@ -256,6 +256,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
         }
 
         #endregion
+        
+        
 
         public OSD ProcessRegionDomainSeed(string path, OSD request, string endpoint)
         {
