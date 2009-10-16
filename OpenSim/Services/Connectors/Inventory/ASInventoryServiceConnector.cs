@@ -270,6 +270,8 @@ namespace OpenSim.Services.Connectors.Inventory
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}",
                                   e.Source, e.Message);
             }
+            
+            return true;
         }
 
         public bool UpdateItem(string id, InventoryItemBase item, UUID sessionID)

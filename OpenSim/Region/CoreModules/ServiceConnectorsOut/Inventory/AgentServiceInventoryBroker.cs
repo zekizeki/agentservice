@@ -416,7 +416,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             {
                 UUID sessionID = GetSessionID(item.Owner);
                 //string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
-                string uri = m_OGPModule.GetInventoryCreateCap(folder.Owner);
+                string uri = m_OGPModule.GetInventoryCreateCap(item.Owner);
                 return m_AgentServiceService.AddItem(uri, item, sessionID);
             }
         }
