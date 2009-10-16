@@ -34,12 +34,12 @@ namespace OpenSim.Framework
     public interface IOGPModule
     {
 
-        /// <summary>
-        /// Set the SIP url to be used by a parcel, this will allow manual setting of a SIP address
-        /// for a particular piece of land, allowing region owners to use preconfigured SIP conference channels.
-        /// This is used by osSetParcelSIPAddress
-        /// </summary>
         bool isOGPUser(UUID agentID);
+        
+        string GetInventoryFolderCreateCap(UUID agentId);
+        string GetInventoryFolderUpdateCap(UUID agentId);
+        
+        string GetInventoryCreateCap(UUID agentId);
         
     }
 }
