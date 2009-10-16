@@ -84,11 +84,13 @@ namespace OpenSim.Region.CoreModules.InterGrid
 	    public ArrayList inventory_skeleton;
 	    public AvatarWearable[] avatar_wearables;
 	    public string inventory_create_cap;
+	    public string inventory_get_cap;
 	    public string inventory_update_cap;
 	    
 	    public string inventory_move_cap;
 	    public string inventory_delete_cap;
 	    public string inventoryfolder_create_cap;
+	    public string inventoryfolder_get_cap;
 	    public string inventoryfolder_update_cap;
 	    public string inventoryfolder_move_cap;
 	    public string inventoryfolder_delete_cap;
@@ -529,9 +531,11 @@ namespace OpenSim.Region.CoreModules.InterGrid
             userState.teleported_into_region = reg.RegionName.ToLower();
             userState.inventory_create_cap = invReflectorURI;
             userState.inventory_update_cap = requestMap["inventory_update_cap"].AsString();
+            userState.inventory_get_cap = requestMap["inventory_get_cap"].AsString();
             userState.inventory_move_cap = requestMap["inventory_move_cap"].AsString();
             userState.inventory_delete_cap = requestMap["inventory_delete_cap"].AsString();
             userState.inventoryfolder_create_cap = requestMap["inventoryfolder_create_cap"].AsString();
+            userState.inventoryfolder_get_cap = requestMap["inventoryfolder_get_cap"].AsString();
             userState.inventoryfolder_update_cap = requestMap["inventoryfolder_update_cap"].AsString();
             userState.inventoryfolder_move_cap = requestMap["inventoryfolder_move_cap"].AsString();
             userState.inventoryfolder_delete_cap = requestMap["inventoryfolder_delete_cap"].AsString();
@@ -1434,6 +1438,12 @@ namespace OpenSim.Region.CoreModules.InterGrid
              return state.inventory_create_cap; 
         }
         
+        public string GetInventoryGetCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.inventory_get_cap; 
+        }
+        
         public string GetInventoryUpdateCap(UUID agentId)
         {
              OGPState state = GetOGPState(agentId);
@@ -1456,6 +1466,12 @@ namespace OpenSim.Region.CoreModules.InterGrid
         {
              OGPState state = GetOGPState(agentId);
              return state.inventoryfolder_create_cap; 
+        }
+        
+        public string GetInventoryFolderGetCap(UUID agentId)
+        {
+             OGPState state = GetOGPState(agentId);
+             return state.inventoryfolder_get_cap; 
         }
         
         public string GetInventoryFolderUpdateCap(UUID agentId)

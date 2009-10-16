@@ -313,17 +313,23 @@ namespace OpenSim.Services.Connectors.Inventory
             return false;
         }
 
-        public InventoryItemBase QueryItem(string id, InventoryItemBase item, UUID sessionID)
+        public InventoryItemBase QueryItem(string uri, InventoryItemBase item, UUID sessionID)
         {
-            string url = string.Empty;
-            string userID = string.Empty;
-
-            if (StringToUrlAndUserID(id, out url, out userID))
+            m_log.Debug("[ASInventory]: QueryItem " + item.Name);
+            try
             {
-                //m_log.DebugFormat("[ASInventory CONNECTOR]: calling {0}", url);
-                ISessionAuthInventoryService connector = GetConnector(url);
-                return connector.QueryItem(userID, item, sessionID);
+                OSDMap requestMap = convertInventoryItemToOSD(item);
+                OSDMap response = SendRequest(requestMap, uri);
+                
+                if(response!=null)
+                    return OSDToInventoryItemBase(response);
             }
+            catch (WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}",
+                                  e.Source, e.Message);
+            }
+            
             return null;
         }
 
@@ -399,8 +405,49 @@ namespace OpenSim.Services.Connectors.Inventory
             return requestMap;
         }
         
+          private InventoryItemBase OSDToInventoryItemBase(OSDMap requestMap)
+        {
+            InventoryItemBase resolvedItem = new InventoryItemBase();
+//          resolvedItem.Creator =   requestMap["Creator"].AsUUID(); // DWL HACK
+            resolvedItem.Owner =   requestMap["Owner"].AsUUID();
+            resolvedItem.GroupID = requestMap["GroupID"].AsUUID();
+            resolvedItem.ID = requestMap["ID"].AsUUID();
+            resolvedItem.AssetID =   requestMap["AssetID"].AsUUID();
+            resolvedItem.AssetType= requestMap["AssetType"].AsInteger();
+            resolvedItem.Folder =   requestMap["Folder"].AsUUID();
+            resolvedItem.Name = requestMap["Name"].AsString();
+            resolvedItem.Description= requestMap["Description"].AsString();
+            resolvedItem.NextPermissions = (uint) requestMap["NextPermissions"].AsInteger();
+            resolvedItem.BasePermissions = (uint) requestMap["BasePermissions"].AsInteger();
+            resolvedItem.CurrentPermissions = (uint) requestMap["CurrentPermissions"].AsInteger();
+            resolvedItem.EveryOnePermissions = (uint) requestMap["EveryOnePermissions"].AsInteger();
+            resolvedItem.GroupPermissions = (uint) requestMap["GroupPermissions"].AsInteger();
+            resolvedItem.InvType = requestMap["InvType"].AsInteger();
+            resolvedItem.SalePrice = requestMap["SalePrice"].AsInteger();
+            resolvedItem.SaleType = (byte) requestMap["SaleType"].AsInteger();
+            resolvedItem.CreationDate = requestMap["CreationDate"].AsInteger();
+            resolvedItem.GroupOwned = requestMap["GroupOwned"].AsBoolean();
+            resolvedItem.Flags =  (uint)requestMap["Flags"].AsInteger();
+            
+            return resolvedItem;
+        }
+        
+        private InventoryFolderBase OSDToInventoryFolderBase(OSDMap requestMap)
+        {
+            InventoryFolderBase folder = new InventoryFolderBase();
+            folder.Name = requestMap["Name"].AsString();
+            folder.ID = requestMap["ID"].AsUUID();
+            folder.Owner = requestMap["Owner"].AsUUID();
+            folder.ParentID = requestMap["ParentID"].AsUUID();
+            folder.Type = (short)requestMap["Type"].AsInteger();
+            folder.Version = (ushort)requestMap["Version"].AsInteger();
+                        
+            
+            return folder;
+        }
+        
         // forward events onto the users Agent Service.
-        private void SendRequest(OSDMap requestMap, string capAddress)
+        private OSDMap SendRequest(OSDMap requestMap, string capAddress)
         {
             m_log.Debug("[ASInventory]: SendRequest " + capAddress);
              
@@ -449,11 +496,14 @@ namespace OpenSim.Services.Connectors.Inventory
                     if (webResponse == null) 
                     { 
                         m_log.Info("[ASInventory]: Null reply on Inventory create post"); 
-                        return;
+                        return null;
                     } 
                     StreamReader sr = new StreamReader(webResponse.GetResponseStream()); 
                     invResponse = sr.ReadToEnd().Trim(); 
                     m_log.InfoFormat("[ASInventory]: InventoryReflector reply was {0} ", invResponse); 
+                    resolverResponse = OSDParser.Deserialize(invResponse);
+                    invResponseMap = (OSDMap) resolverResponse;
+                    return invResponseMap;
                 } 
                 catch (WebException ex) 
                 { 
@@ -461,7 +511,7 @@ namespace OpenSim.Services.Connectors.Inventory
                 
                 } 
             
-            
+            return null;
              
             
         }

@@ -303,6 +303,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
 	    // [rob] add caps for the inventory reflector to use
 	    string inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_create/"+capBit;
 	    RAMap["inventory_create_cap"] = OSD.FromString(inventoryReflectCapString);
+	    inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_get/"+capBit;
+	 	RAMap["inventory_get_cap"] = OSD.FromString(inventoryReflectCapString);
 	    inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_update/"+capBit;
 	 	RAMap["inventory_update_cap"] = OSD.FromString(inventoryReflectCapString);   
         inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_move/"+capBit;
@@ -311,6 +313,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
 	 	RAMap["inventory_delete_cap"] = OSD.FromString(inventoryReflectCapString);
 	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_create/"+capBit;
 	 	RAMap["inventoryfolder_create_cap"] = OSD.FromString(inventoryReflectCapString);
+	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_get/"+capBit;
+	 	RAMap["inventoryfolder_get_cap"] = OSD.FromString(inventoryReflectCapString);
 	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_update/"+capBit;
 	 	RAMap["inventoryfolder_update_cap"] = OSD.FromString(inventoryReflectCapString);
 	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_move/"+capBit;
@@ -633,12 +637,16 @@ namespace OpenSim.Grid.AgentDomain.Modules
         RAMap["inventory_create_cap"] = OSD.FromString(inventoryReflectCapString);
         inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_update/"+capBit;
 	 	RAMap["inventory_update_cap"] = OSD.FromString(inventoryReflectCapString);
+	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_get/"+capBit;
+        RAMap["inventory_get_cap"] = OSD.FromString(inventoryReflectCapString);
 	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_move/"+capBit;
 	 	RAMap["inventory_move_cap"] = OSD.FromString(inventoryReflectCapString);
 	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_delete/"+capBit;
 	 	RAMap["inventory_delete_cap"] = OSD.FromString(inventoryReflectCapString);
 	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_create/"+capBit;
 	 	RAMap["inventoryfolder_create_cap"] = OSD.FromString(inventoryReflectCapString);
+	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_get/"+capBit;
+	 	RAMap["inventoryfolder_get_cap"] = OSD.FromString(inventoryReflectCapString);
 	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_update/"+capBit;
 	 	RAMap["inventoryfolder_update_cap"] = OSD.FromString(inventoryReflectCapString);
 	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_move/"+capBit;
@@ -1428,6 +1436,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             // [rob] add caps for the inventory reflector to use
     	    string inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_create/"+capSufix;
     	    capMap["inventory_create_cap"] = OSD.FromString(inventoryReflectCapString);
+    	    inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_get/"+capSufix;
+        	capMap["inventory_get_cap"] = OSD.FromString(inventoryReflectCapString);
     	    inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_update/"+capSufix;
     	 	capMap["inventory_update_cap"] = OSD.FromString(inventoryReflectCapString);   
             inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_move/"+capSufix;
@@ -1436,6 +1446,8 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
     	 	capMap["inventory_delete_cap"] = OSD.FromString(inventoryReflectCapString);
     	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_create/"+capSufix;
     	 	capMap["inventoryfolder_create_cap"] = OSD.FromString(inventoryReflectCapString);
+    	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_get/"+capSufix;
+	 		capMap["inventoryfolder_get_cap"] = OSD.FromString(inventoryReflectCapString);
     	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_update/"+capSufix;
     	 	capMap["inventoryfolder_update_cap"] = OSD.FromString(inventoryReflectCapString);
     	 	inventoryReflectCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventoryfolder_move/"+capSufix;
@@ -1582,6 +1594,75 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             return responseMap;
             
         }
+        
+        public OSD getInventory(string path, OSD request, string endpoint)
+        {
+            m_log.Info("[AGENT DOMAIN]: getInventory cap called"); 
+            
+            OSDMap responseMap = new OSDMap(); 
+            OSDMap requestMap = (OSDMap)request;
+            
+            // check that this cap is valid
+            string[] pathSegments = path.Split('/'); 
+            int i; 
+            
+            if (pathSegments.Length < 2) 
+             { 
+                m_log.WarnFormat("[Agent Domain]: getInventory Badly formed seed cap fetch path {0} from endpoint {1}",path,endpoint); 
+                responseMap["connect"] = OSD.FromBoolean(true); 
+                return responseMap; 
+            } 
+            
+            UUID agentUUID = m_uuid_table.getAgentUUIDforCap(pathSegments[3]); 
+            m_log.InfoFormat("[AGENT DOMAIN]: getInventory  found agent UUID of {0}",agentUUID.ToString());
+            if (agentUUID == UUID.Zero)
+             {
+                m_log.Warn("[AGENT DOMAIN]: Invalid cap");
+                return responseMap;
+            }
+            
+            InventoryItemBase itemUpd = OSDToInventoryItemBase(requestMap);            // we need to get the item from inventory as the full item details do not get passed to us in the cap
+            InventoryItemBase item = m_inventoryService.GetInventoryItem(itemUpd.ID);
+            
+            
+			            
+            return convertInventoryItemToOSD(item);            
+        }
+        
+        public OSD getInventoryFolder(string path, OSD request, string endpoint)
+        {
+            m_log.Info("[AGENT DOMAIN]: getInventoryFolder cap called"); 
+            
+            OSDMap responseMap = new OSDMap(); 
+            OSDMap requestMap = (OSDMap)request;
+            
+            // check that this cap is valid
+            string[] pathSegments = path.Split('/'); 
+            int i; 
+            
+            if (pathSegments.Length < 2) 
+             { 
+                m_log.WarnFormat("[Agent Domain]: getInventoryFolder Badly formed seed cap fetch path {0} from endpoint {1}",path,endpoint); 
+                responseMap["connect"] = OSD.FromBoolean(true); 
+                return responseMap; 
+            } 
+            
+            UUID agentUUID = m_uuid_table.getAgentUUIDforCap(pathSegments[3]); 
+            m_log.InfoFormat("[AGENT DOMAIN]: getInventoryFolder  found agent UUID of {0}",agentUUID.ToString());
+            if (agentUUID == UUID.Zero)
+             {
+                m_log.Warn("[AGENT DOMAIN]: Invalid cap");
+                return responseMap;
+            }
+            
+            InventoryFolderBase folderupd = OSDToInventoryFolderBase(requestMap);
+            
+            // TODO work out how to get this folders details
+            //InventoryFolderBase folder = m_inventoryService.GetInventoryFolder( folderupd.ID);	
+            		            
+            return convertInventoryFolderToOSD(folderupd);            
+        }
+
         
         public OSD updateWearables(string path, OSD request, string endpoint)
         {
@@ -1920,6 +2001,52 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
 			
 			return folder;
         }
+        
+        private OSDMap convertInventoryItemToOSD(InventoryItemBase invItem)
+        {
+            OSDMap requestMap = new OSDMap();
+            
+            requestMap["Creator"] = OSD.FromString(invItem.CreatorId);
+            requestMap["Owner"] = OSD.FromString(invItem.Owner.ToString());
+            requestMap["GroupID"] = OSD.FromString(invItem.GroupID.ToString());
+            requestMap["ID"] = OSD.FromString(invItem.ID.ToString());
+            requestMap["AssetID"] = OSD.FromString(invItem.AssetID.ToString());
+             m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: asset id {0}",invItem.AssetID.ToString());
+            requestMap["AssetType"] = OSD.FromInteger(invItem.AssetType);
+            requestMap["Folder"] = OSD.FromString(invItem.Folder.ToString());
+            requestMap["Name"] = OSD.FromString(invItem.Name);
+            requestMap["Description"] = OSD.FromString(invItem.Description);
+            requestMap["NextPermissions"] = OSD.FromInteger((uint)invItem.NextPermissions);
+            requestMap["CurrentPermissions"] = OSD.FromInteger((uint)invItem.CurrentPermissions);
+            requestMap["BasePermissions"] = OSD.FromInteger((uint)invItem.BasePermissions);
+            requestMap["EveryOnePermissions"] = OSD.FromInteger((uint)invItem.EveryOnePermissions);
+            requestMap["GroupPermissions"] = OSD.FromInteger((uint)invItem.GroupPermissions);
+            requestMap["InvType"] = OSD.FromInteger((int)invItem.InvType);
+            requestMap["SalePrice"] = OSD.FromInteger((int)invItem.SalePrice);
+            requestMap["SaleType"] = OSD.FromInteger((uint)invItem.SaleType);
+            requestMap["CreationDate"] = OSD.FromInteger((int)invItem.CreationDate);
+            requestMap["GroupOwned"] = OSD.FromInteger(0);
+            requestMap["Flags"] = OSD.FromInteger((uint)invItem.Flags);
+            
+            
+            
+            return requestMap;
+            
+        }
+        
+        private OSDMap convertInventoryFolderToOSD(InventoryFolderBase folder)
+        {
+            OSDMap requestMap = new OSDMap();
+            
+                requestMap["Name"] = OSD.FromString(folder.Name);
+                requestMap["ID"] = OSD.FromString(folder.ID.ToString()); 
+                requestMap["Owner"] = OSD.FromString(folder.Owner.ToString());
+                requestMap["ParentID"] = OSD.FromString(folder.ParentID.ToString()); 
+                requestMap["Type"] = OSD.FromInteger((int)folder.Type);
+                requestMap["Version"] = OSD.FromInteger((int)folder.Version);   
+                
+            return requestMap;
+        }
 
 
 
@@ -1977,12 +2104,14 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             
             // [Rob] for inventory reflector
             m_httpServer.AddLLSDHandler("/agent/inventory_create",createInventory);
+            m_httpServer.AddLLSDHandler("/agent/inventory_get",getInventory);
             m_httpServer.AddLLSDHandler("/agent/inventory_update",updateInventory);
             m_httpServer.AddLLSDHandler("/agent/inventory_move",moveInventory);
             m_httpServer.AddLLSDHandler("/agent/inventory_delete",deleteInventory);
             //m_httpServer.AddLLSDHandler("/agent/inventory_copy",updateInventory);
             
             m_httpServer.AddLLSDHandler("/agent/inventoryfolder_create",createInventoryFolder);
+            m_httpServer.AddLLSDHandler("/agent/inventoryfolder_get",getInventoryFolder);
             m_httpServer.AddLLSDHandler("/agent/inventoryfolder_update",updateInventoryFolder);
             m_httpServer.AddLLSDHandler("/agent/inventoryfolder_move",moveInventoryFolder);
             m_httpServer.AddLLSDHandler("/agent/inventoryfolder_delete",deleteInventoryFolder);
