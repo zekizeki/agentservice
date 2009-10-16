@@ -204,6 +204,11 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
                         if (!m_scene.Contains(scene))
                             m_scene.Add(scene);
+                            
+                        m_log.Info("[FreeSwitchVoice] registering IOGPModule with the scene");
+                
+                        // register the IOGPModule interface for this module, so the Agent Service components can call us
+                        scene.RegisterModuleInterface<IOGPModule>(this);
                     }
                 }
             }
@@ -235,7 +240,12 @@ namespace OpenSim.Region.CoreModules.InterGrid
                else 
                {
                m_reflector = new InventoryReflector(region,this);
+               
+               
+                
+            
                }
+               
         }
         
   
@@ -594,7 +604,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             agentData.firstname = FirstName;
             agentData.lastname = LastName;
             agentData.SecureSessionID = secureSessionID;
-            //agentData.SessionID = UUID.Random();
+            agentData.SessionID = UUID.Random();// added back in
             agentData.startpos = new Vector3(128f, 128f, 100f);
 
             // Pre-Fill our region cache with information on the agent.
@@ -610,9 +620,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
             useragent.Region = reg.originRegionID;
             useragent.SecureSessionID = agentData.SecureSessionID;
             useragent.SessionID = agentData.SessionID;
-            m_log.Info("[OGP]: Debug 3");        
+            m_log.Info("[OGP]: securesession id is "+agentData.SecureSessionID);  
+            m_log.Info("[OGP]: session id is "+agentData.SessionID);      
             UserProfileData userProfile = new UserProfileData();
-            m_log.Info("[OGP]: Debug 4");        
             userProfile.AboutText = "OGP User";
             userProfile.CanDoMask = (uint)0;
             userProfile.Created = Util.UnixTimeSinceEpoch();
@@ -701,6 +711,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
             userProfile.UserInventoryURI = homeScene.CommsManager.NetworkServersInfo.InventoryURL;
             userProfile.WantDoMask = 0;
             userProfile.WebLoginKey = UUID.Random();
+            
+         
 
             // Do caps registration
             // get seed capagentData.firstname = FirstName;agentData.lastname = LastName;
@@ -734,6 +746,10 @@ namespace OpenSim.Region.CoreModules.InterGrid
             // Stick our data in the cache so the region will know something about us
 //            homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(agentData.AgentID, userProfile);
             homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(userProfile); // Did not help
+            userProfile.CurrentAgent=useragent;
+            homeScene.CommsManager.UserService.UpdateUserProfile(userProfile);
+            
+            
             m_log.Info("[OGP]: Debug 9");        
             // Call 'new user' event handler
 //          homeScene.NewUserConnection(agentData); OLD Code DWL
