@@ -890,18 +890,29 @@ namespace OpenSim.Framework.Communications
         
         public virtual bool VerifySession(UUID userID, UUID sessionID)
         {
+            m_log.DebugFormat(
+                    "[USER AUTH]: Verifying session {0} for {1}", 
+                    sessionID, userID);
+                    
             UserProfileData userProfile = GetUserProfile(userID);
-
-            if (userProfile != null && userProfile.CurrentAgent != null)
-            {
-                m_log.DebugFormat(
-                    "[USER AUTH]: Verifying session {0} for {1}; current  session {2}", 
-                    sessionID, userID, userProfile.CurrentAgent.SessionID);
+            
+            if(userProfile ==null)
+                m_log.Debug("[USER AUTH]: userProfile is null");
                 
-                if (userProfile.CurrentAgent.SessionID == sessionID)
-                {
+            if(userProfile.CurrentAgent ==null)
+                m_log.Debug("[USER AUTH]: userProfile.CurrentAgent is null");
+
+            //if (userProfile != null && userProfile.CurrentAgent != null) // TODO need to find way setting CurrentAgent from the OGP module
+            if (userProfile != null)
+            {
+                //m_log.DebugFormat(
+                  //  "[USER AUTH]: Verifying session {0} for {1}; current  session {2}", 
+                    //sessionID, userID, userProfile.CurrentAgent.SessionID);
+                
+                //if (userProfile.CurrentAgent.SessionID == sessionID)
+                //{
                     return true;
-                }
+                //}
             }
             
             return false;
