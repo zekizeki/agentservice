@@ -1196,6 +1196,83 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Grid.AgentDomain.Modules" path="OpenSim/Grid/AgentDomain.Modules" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Web"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Framework.Capabilities"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
+      <Reference name="OpenSim.Grid.Framework"/>
+      <Reference name="OpenSim.Grid.AgentDomain"/>
+      <Reference name="OpenSim.Grid.Communications.OGS1"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="log4net.dll"/>
+      <Reference name="DotNetOpenId.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Grid.AgentDomain" path="OpenSim/Grid/AgentDomain" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Web"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
+      <Reference name="OpenSim.Grid.Communications.OGS1"/>
+      <Reference name="OpenSim.Grid.Framework"/>
+      <Reference name="OpenSim.Grid.UserServer.Modules"/>
+      <Reference name="OpenSim.Grid.AgentDomain.Modules"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
+      <Reference name="XMLRPC.dll"/>
+      <Reference name="log4net.dll"/>
+      <Reference name="DotNetOpenId.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
 
     <Project frameworkVersion="v3_5" name="OpenSim.Grid.MessagingServer" path="OpenSim/Grid/MessagingServer" type="Exe">
       <Configuration name="Debug">
