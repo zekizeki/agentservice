@@ -60,8 +60,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
             m_scene = scene;
             m_ogp = ogp;
             
-            scene.EventManager.OnClientConnect += OnClientConnect;
-            scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
+            //scene.EventManager.OnClientConnect += OnClientConnect;
+            //scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
             //scene.EventManager.OnNewInventoryItemCreated += NewInventoryItem;
             //scene.EventManager.OnInventoryItemUpdated += InventoryItemUpdated;
             
@@ -77,17 +77,17 @@ namespace OpenSim.Region.CoreModules.InterGrid
             if(m_ogp.isOGPUser(remoteClient.AgentId))
             {
                 //remoteClient.OnCreateNewInventoryItem = CreateNewInventoryItem;
-                remoteClient.OnUpdateInventoryItem += UpdateInventoryItem;
-                remoteClient.OnRemoveInventoryItem +=RemoveInventoryItem;
-                remoteClient.OnCopyInventoryItem += CopyInventoryItem;
-                remoteClient.OnMoveInventoryItem += MoveInventoryItem;
-                remoteClient.OnPurgeInventoryDescendents += PurgeInventoryDescendents;
+                //remoteClient.OnUpdateInventoryItem += UpdateInventoryItem;
+                //remoteClient.OnRemoveInventoryItem +=RemoveInventoryItem;
+                //remoteClient.OnCopyInventoryItem += CopyInventoryItem;
+                //remoteClient.OnMoveInventoryItem += MoveInventoryItem;
+                //remoteClient.OnPurgeInventoryDescendents += PurgeInventoryDescendents;
                 
-                remoteClient.OnRemoveInventoryFolder += RemoveInventoryFolder;
-                remoteClient.OnCreateNewInventoryFolder +=CreateInventoryFolder;
-                remoteClient.OnUpdateInventoryFolder +=UpdateInventoryFolder;
-                remoteClient.OnMoveInventoryFolder += MoveInventoryFolder;
-                remoteClient.OnAvatarNowWearing += AvatarNowWearing;
+                //remoteClient.OnRemoveInventoryFolder += RemoveInventoryFolder;
+               // remoteClient.OnCreateNewInventoryFolder +=CreateInventoryFolder;
+                //remoteClient.OnUpdateInventoryFolder +=UpdateInventoryFolder;
+                //remoteClient.OnMoveInventoryFolder += MoveInventoryFolder;
+                //remoteClient.OnAvatarNowWearing += AvatarNowWearing;
             }
         }
         
