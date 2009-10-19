@@ -250,17 +250,21 @@ namespace OpenSim.Services.Connectors.Inventory
             return true;
         }
 
-        public bool PurgeFolder(string id, InventoryFolderBase folder, UUID sessionID)
+        public bool PurgeFolder(string uri, InventoryFolderBase folder, UUID sessionID)
         {
-            string url = string.Empty;
-            string userID = string.Empty;
-
-            if (StringToUrlAndUserID(id, out url, out userID))
+            m_log.Debug("[ASInventory: PurgeFolder ");
+            try
             {
-                ISessionAuthInventoryService connector = GetConnector(url);
-                return connector.PurgeFolder(userID, folder, sessionID);
+                OSDMap requestMap = convertInventoryFolderToOSD(folder);
+                SendRequest(requestMap, uri);
             }
-            return false;
+            catch (WebException e)
+            {
+                m_log.ErrorFormat("[ASInventory]: DeleteFolders operation failed, {0} {1}",
+                                  e.Source, e.Message);
+                return false;
+            }
+            return true;
         }
 
         public List<InventoryItemBase> GetFolderItems(string id, UUID folderID, UUID sessionID)

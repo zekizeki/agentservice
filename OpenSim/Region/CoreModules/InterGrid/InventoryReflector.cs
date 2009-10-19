@@ -60,7 +60,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             m_scene = scene;
             m_ogp = ogp;
             
-            //scene.EventManager.OnClientConnect += OnClientConnect;
+            scene.EventManager.OnClientConnect += OnClientConnect;
             //scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
             //scene.EventManager.OnNewInventoryItemCreated += NewInventoryItem;
             //scene.EventManager.OnInventoryItemUpdated += InventoryItemUpdated;
@@ -87,7 +87,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                // remoteClient.OnCreateNewInventoryFolder +=CreateInventoryFolder;
                 //remoteClient.OnUpdateInventoryFolder +=UpdateInventoryFolder;
                 //remoteClient.OnMoveInventoryFolder += MoveInventoryFolder;
-                //remoteClient.OnAvatarNowWearing += AvatarNowWearing;
+                remoteClient.OnAvatarNowWearing += AvatarNowWearing;
             }
         }
         

@@ -395,7 +395,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                string uri = m_OGPModule.GetInventoryFolderDeleteCap(folder.Owner);
                 return m_AgentServiceService.PurgeFolder(uri, folder, sessionID);
             }
         }
