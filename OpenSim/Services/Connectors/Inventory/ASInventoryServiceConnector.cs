@@ -269,35 +269,52 @@ namespace OpenSim.Services.Connectors.Inventory
             {
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}",
                                   e.Source, e.Message);
+                return false;
             }
             
             return true;
         }
 
-        public bool UpdateItem(string id, InventoryItemBase item, UUID sessionID)
+        public bool UpdateItem(string uri, InventoryItemBase item, UUID sessionID)
         {
-            string url = string.Empty;
-            string userID = string.Empty;
-
-            if (StringToUrlAndUserID(id, out url, out userID))
+            m_log.Debug("[ASInventory]: UpdateItem " + item.Name);
+            try
             {
-                ISessionAuthInventoryService connector = GetConnector(url);
-                return connector.UpdateItem(userID, item, sessionID);
+                OSDMap requestMap = convertInventoryItemToOSD(item);
+                SendRequest(requestMap, uri);
             }
-            return false;
+            catch (WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Update inventory item operation failed, {0} {1}",
+                                  e.Source, e.Message);
+                return false;
+            }
+            
+            return true;
         }
 
-        public bool MoveItems(string id, List<InventoryItemBase> items, UUID sessionID)
+        public bool MoveItems(string uri, List<InventoryItemBase> items, UUID sessionID)
         {
-            string url = string.Empty;
-            string userID = string.Empty;
-
-            if (StringToUrlAndUserID(id, out url, out userID))
+            m_log.Debug("[ASInventory]: MoveItems " + items.Count);
+            
+            foreach (InventoryItemBase item in items) // Loop through List with foreach
             {
-                ISessionAuthInventoryService connector = GetConnector(url);
-                return connector.MoveItems(userID, items, sessionID);
+         
+                try
+                {
+                    OSDMap requestMap = convertInventoryItemToOSD(item);
+                    SendRequest(requestMap, uri);
+                }
+                catch (WebException e)
+                {
+                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: MoveInventoryItem operation failed, {0} {1}",
+                         e.Source, e.Message);
+                         
+                    return false;
+                }
             }
-            return false;
+            
+            return true;
         }
 
         public bool DeleteItems(string id, List<UUID> itemIDs, UUID sessionID)

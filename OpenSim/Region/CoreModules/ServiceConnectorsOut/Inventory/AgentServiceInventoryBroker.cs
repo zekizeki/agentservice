@@ -431,7 +431,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
-                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
+                string uri = m_OGPModule.GetInventoryUpdateCap(item.Owner);
                 return m_AgentServiceService.UpdateItem(uri, item, sessionID);
             }
         }
@@ -448,7 +448,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             else
             {
                 UUID sessionID = GetSessionID(ownerID);
-                string uri = GetUserInventoryURI(ownerID) + "/" + ownerID.ToString();
+                string uri = m_OGPModule.GetInventoryMoveCap(ownerID);
                 return m_AgentServiceService.MoveItems(uri, items, sessionID);
             }
         }
@@ -482,7 +482,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
-                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
+                //string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
+                string uri = m_OGPModule.GetInventoryGetCap(item.Owner);
                 return m_AgentServiceService.QueryItem(uri, item, sessionID);
             }
         }

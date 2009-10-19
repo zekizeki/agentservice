@@ -38,10 +38,13 @@ namespace OpenSim.Framework
         
         string GetInventoryFolderCreateCap(UUID agentId);
         string GetInventoryFolderUpdateCap(UUID agentId);
+        string GetInventoryFolderGetCap(UUID agentId);
         
         string GetInventoryCreateCap(UUID agentId);
+        string GetInventoryUpdateCap(UUID agentId);
+        string GetInventoryMoveCap(UUID agentId);
         string GetInventoryGetCap(UUID agentId);
-        string GetInventoryFolderGetCap(UUID agentId);
+        
         
     }
 }
