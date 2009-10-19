@@ -1657,10 +1657,26 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             
             InventoryFolderBase folderupd = OSDToInventoryFolderBase(requestMap);
             
-            // TODO work out how to get this folders details
-            //InventoryFolderBase folder = m_inventoryService.GetInventoryFolder( folderupd.ID);	
+            // TODO this is very ineffient work out how to get this folders details directly.
+            
+            List<InventoryFolderBase> folderList = null;
+            folderList = m_inventoryService.GetInventorySkeleton(agentUUID);
+            
+            InventoryFolderBase folder = folderupd;
+            
+            foreach (InventoryFolderBase InvFolder in folderList)
+            {
+                
+                if(InvFolder.ID == folderupd.ID)
+                {
+                	m_log.Debug("[AGENT DOMAIN]: getInventoryFolder found matching folder");
+                	folder = InvFolder;
+                	break;	
+                }
+            }
+
             		            
-            return convertInventoryFolderToOSD(folderupd);            
+            return convertInventoryFolderToOSD(folder);            
         }
 
         
