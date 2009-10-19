@@ -1777,9 +1777,12 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             
             InventoryItemBase resolvedItem = OSDToInventoryItemBase(requestMap);
             
+            // look up the item and set the bits that have changed i.e.  folder
+            InventoryItemBase item = m_inventoryService.GetInventoryItem(resolvedItem.ID);
+            item.Folder =  resolvedItem.Folder;
 			
 			// call the inventory service to add it 
-			bool success = m_inventoryService.UpdateItem( resolvedItem);
+			bool success = m_inventoryService.UpdateItem( item);
 			//bool success = false; // DWL HACK
             
             
