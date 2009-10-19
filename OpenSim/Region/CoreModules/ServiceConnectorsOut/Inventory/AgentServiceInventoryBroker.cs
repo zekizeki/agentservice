@@ -365,7 +365,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             else
             {
                 UUID sessionID = GetSessionID(ownerID);
-                string uri = GetUserInventoryURI(ownerID) + "/" + ownerID.ToString();
+                string uri =  m_OGPModule.GetInventoryFolderDeleteCap(ownerID);
                 return m_AgentServiceService.DeleteFolders(uri, folderIDs, sessionID);
             }
         }
@@ -380,7 +380,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                string uri = m_OGPModule.GetInventoryFolderMoveCap(folder.Owner);
                 return m_AgentServiceService.MoveFolder(uri, folder, sessionID);
             }
         }
@@ -467,7 +467,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             else
             {
                 UUID sessionID = GetSessionID(ownerID);
-                string uri = GetUserInventoryURI(ownerID) + "/" + ownerID.ToString();
+                string uri = m_OGPModule.GetInventoryDeleteCap(ownerID);
                 return m_AgentServiceService.DeleteItems(uri, itemIDs, sessionID);
             }
         }
@@ -482,7 +482,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
-                //string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
                 string uri = m_OGPModule.GetInventoryGetCap(item.Owner);
                 return m_AgentServiceService.QueryItem(uri, item, sessionID);
             }
@@ -498,10 +497,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             else
             {
                 // TODO the region needs this to continue with a folder update and move operation.
-                m_log.ErrorFormat("[AgentServiceInventoryBroker]: GetFolder ERROR this shouldnt need calling?? {0}", folder);
-                //UUID sessionID = GetSessionID(folder.Owner);
-                //string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
-                //return m_AgentServiceService.QueryFolder(uri, folder, sessionID);
+                
+                UUID sessionID = GetSessionID(folder.Owner);
+                string uri = m_OGPModule.GetInventoryFolderGetCap(folder.Owner);
+                return m_AgentServiceService.QueryFolder(uri, folder, sessionID);
                 return null;
             }
         }

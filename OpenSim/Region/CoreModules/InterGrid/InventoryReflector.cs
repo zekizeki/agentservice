@@ -334,49 +334,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
         IClientAPI remoteClient, UUID transactionID, UUID itemID, InventoryItemBase item)
         {
             m_log.Debug("[OGP InventoryReflector]: UpdateInventoryItem " + item.Name + " owner " + remoteClient.AgentId);
-            
-            // we need to get the item from the cache to see whats changed.
-            
-            //CachedUserInfo userInfo
-            //    = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            //InventoryItemBase item = itemUpd;
-            /*
-            if (userInfo != null && userInfo.RootFolder != null)
-            {
-                item = userInfo.RootFolder.FindItem(itemID);
-                if (item != null)
-                {
-                    if (UUID.Zero == transactionID)
-                    {
-                        item.Name = itemUpd.Name;
-                        item.Description = itemUpd.Description;
-                        item.NextPermissions = itemUpd.NextPermissions;
-                        item.CurrentPermissions |= 8; // Slam!
-                        item.EveryOnePermissions = itemUpd.EveryOnePermissions;
-                        item.GroupPermissions = itemUpd.GroupPermissions;
-
-                        item.GroupID = itemUpd.GroupID;
-                        item.GroupOwned = itemUpd.GroupOwned;
-                        item.CreationDate = itemUpd.CreationDate;
-                        // The client sends zero if its newly created?
-
-                        if (itemUpd.CreationDate == 0)
-                            item.CreationDate = Util.UnixTimeSinceEpoch();
-                        else
-                            item.CreationDate = itemUpd.CreationDate;
-
-                        // TODO: Check if folder changed and move item
-                        //item.NextPermissions = itemUpd.Folder;
-                        item.InvType = itemUpd.InvType;
-                        item.SalePrice = itemUpd.SalePrice;
-                        item.SaleType = itemUpd.SaleType;
-                        item.Flags = itemUpd.Flags;
-
-                        userInfo.UpdateItem(item);
-                    }
-                }
-            }
-            */
+           
             // check that this is an OGP user before we reflect the event
             if(m_ogp.isOGPUser(remoteClient.AgentId))
             {

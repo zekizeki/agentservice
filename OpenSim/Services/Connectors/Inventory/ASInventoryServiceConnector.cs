@@ -180,8 +180,9 @@ namespace OpenSim.Services.Connectors.Inventory
                 }
                 catch (WebException e)
                 {
-                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: CreateInventoryFolder operation failed, {0} {1}",
+                    m_log.ErrorFormat("[ASInventory]: CreateInventoryFolder operation failed, {0} {1}",
                          e.Source, e.Message);
+                    return false;
                 }
                 
             return true;
@@ -198,37 +199,55 @@ namespace OpenSim.Services.Connectors.Inventory
                 }
                 catch (WebException e)
                 {
-                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: CreateInventoryFolder operation failed, {0} {1}",
+                    m_log.ErrorFormat("[ASInventory]: UpdateFolder operation failed, {0} {1}",
                          e.Source, e.Message);
+                    return false;
                 }
                 
             return true;
         }
 
-        public bool MoveFolder(string id, InventoryFolderBase folder, UUID sessionID)
+        public bool MoveFolder(string uri, InventoryFolderBase folder, UUID sessionID)
         {
-            string url = string.Empty;
-            string userID = string.Empty;
-
-            if (StringToUrlAndUserID(id, out url, out userID))
+            m_log.Debug("[ASInventory]: MoveFolder " + folder.ID);
+            
+            try
             {
-                ISessionAuthInventoryService connector = GetConnector(url);
-                return connector.MoveFolder(userID, folder, sessionID);
+                OSDMap requestMap = convertInventoryFolderToOSD(folder);
+                SendRequest(requestMap, uri);
             }
-            return false;
+            catch (WebException e)
+            {
+                m_log.ErrorFormat("[ASInventory]: MoveFolder operation failed, {0} {1}",
+                                  e.Source, e.Message);
+                return false;
+            }
+                
+            return true;
         }
 
-        public bool DeleteFolders(string id, List<UUID> folders, UUID sessionID)
+        public bool DeleteFolders(string uri, List<UUID> folders, UUID sessionID)
         {
-            string url = string.Empty;
-            string userID = string.Empty;
-
-            if (StringToUrlAndUserID(id, out url, out userID))
+            m_log.Debug("[ASInventory: DeleteFolders ");
+            
+            foreach(UUID folderID in folders)
             {
-                ISessionAuthInventoryService connector = GetConnector(url);
-                return connector.DeleteFolders(userID, folders, sessionID);
+                InventoryFolderBase folder = new InventoryFolderBase();
+                folder.ID = folderID;
+                try
+                {
+                    OSDMap requestMap = convertInventoryFolderToOSD(folder);
+                    SendRequest(requestMap, uri);
+                }
+                catch (WebException e)
+                {
+                    m_log.ErrorFormat("[ASInventory]: DeleteFolders operation failed, {0} {1}",
+                                      e.Source, e.Message);
+                    return false;
+                }
             }
-            return false;
+            
+            return true;
         }
 
         public bool PurgeFolder(string id, InventoryFolderBase folder, UUID sessionID)
@@ -267,7 +286,7 @@ namespace OpenSim.Services.Connectors.Inventory
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}",
+                m_log.ErrorFormat("[ASInventory]: Add new inventory item operation failed, {0} {1}",
                                   e.Source, e.Message);
                 return false;
             }
@@ -285,7 +304,7 @@ namespace OpenSim.Services.Connectors.Inventory
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Update inventory item operation failed, {0} {1}",
+                m_log.ErrorFormat("[ASInventory]: Update inventory item operation failed, {0} {1}",
                                   e.Source, e.Message);
                 return false;
             }
@@ -307,7 +326,7 @@ namespace OpenSim.Services.Connectors.Inventory
                 }
                 catch (WebException e)
                 {
-                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: MoveInventoryItem operation failed, {0} {1}",
+                    m_log.ErrorFormat("[ASInventory]: MoveInventoryItem operation failed, {0} {1}",
                          e.Source, e.Message);
                          
                     return false;
@@ -317,17 +336,30 @@ namespace OpenSim.Services.Connectors.Inventory
             return true;
         }
 
-        public bool DeleteItems(string id, List<UUID> itemIDs, UUID sessionID)
+        public bool DeleteItems(string uri, List<UUID> itemIDs, UUID sessionID)
         {
-            string url = string.Empty;
-            string userID = string.Empty;
-
-            if (StringToUrlAndUserID(id, out url, out userID))
+            m_log.Debug("[ASInventory]: DeleteItems " + itemIDs.Count);
+            
+            InventoryItemBase item= new InventoryItemBase();
+            foreach (UUID itemID in itemIDs) // Loop through List with foreach
             {
-                ISessionAuthInventoryService connector = GetConnector(url);
-                return connector.DeleteItems(userID, itemIDs, sessionID);
+         
+                try
+                {
+                    item.ID = itemID; 
+                    OSDMap requestMap = convertInventoryItemToOSD(item);
+                    SendRequest(requestMap, uri);
+                }
+                catch (WebException e)
+                {
+                    m_log.ErrorFormat("[ASInventory]: DeleteItems operation failed, {0} {1}",
+                         e.Source, e.Message);
+                         
+                    return false;
+                }
             }
-            return false;
+            
+            return true;
         }
 
         public InventoryItemBase QueryItem(string uri, InventoryItemBase item, UUID sessionID)
@@ -343,23 +375,30 @@ namespace OpenSim.Services.Connectors.Inventory
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}",
+                m_log.ErrorFormat("[ASInventory]: QueryItem operation failed, {0} {1}",
                                   e.Source, e.Message);
             }
             
             return null;
         }
 
-        public InventoryFolderBase QueryFolder(string id, InventoryFolderBase folder, UUID sessionID)
+        public InventoryFolderBase QueryFolder(string uri, InventoryFolderBase folder, UUID sessionID)
         {
-            string url = string.Empty;
-            string userID = string.Empty;
-
-            if (StringToUrlAndUserID(id, out url, out userID))
+            m_log.Debug("[ASInventory]: QueryFolder " + folder.Name);
+            try
             {
-                ISessionAuthInventoryService connector = GetConnector(url);
-                return connector.QueryFolder(userID, folder, sessionID);
+                OSDMap requestMap = convertInventoryFolderToOSD(folder);
+                OSDMap response = SendRequest(requestMap, uri);
+                
+                if(response!=null)
+                    return OSDToInventoryFolderBase(response);
             }
+            catch (WebException e)
+            {
+                m_log.ErrorFormat("[ASInventory]: QueryFolder operation failed, {0} {1}",
+                                  e.Source, e.Message);
+            }
+            
             return null;
         }
 
@@ -385,7 +424,6 @@ namespace OpenSim.Services.Connectors.Inventory
             requestMap["GroupID"] = OSD.FromString(invItem.GroupID.ToString());
             requestMap["ID"] = OSD.FromString(invItem.ID.ToString());
             requestMap["AssetID"] = OSD.FromString(invItem.AssetID.ToString());
-             m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: asset id {0}",invItem.AssetID.ToString());
             requestMap["AssetType"] = OSD.FromInteger(invItem.AssetType);
             requestMap["Folder"] = OSD.FromString(invItem.Folder.ToString());
             requestMap["Name"] = OSD.FromString(invItem.Name);

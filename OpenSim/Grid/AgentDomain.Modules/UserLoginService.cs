@@ -1835,7 +1835,7 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             
             InventoryItemBase resolvedItem = OSDToInventoryItemBase(requestMap);
 			
-			// call the inventory service to add it 
+			// call the inventory service to delete it 
 			bool success = m_inventoryService.DeleteItem( resolvedItem);
 			//bool success = false;
             
