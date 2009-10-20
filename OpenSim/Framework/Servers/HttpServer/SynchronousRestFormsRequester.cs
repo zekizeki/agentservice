@@ -81,7 +81,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 catch (Exception e)
                 {
-                    m_log.DebugFormat("[FORMS]: exception occured on sending request {0}", e.Message);
+                    m_log.DebugFormat("[FORMS]: exception occured on sending request {0} to {1}", e.Message,requestUrl);
                 }
                 finally
                 {
