@@ -1394,9 +1394,10 @@
 
     Include-Standalone    = "config-include/Standalone.ini"
     ;Include-HGStandalone = "config-include/StandaloneHypergrid.ini"
+    ;Include-ASStandalone = "config-include/StandaloneAgentService.ini" 
     ;Include-Grid         = "config-include/Grid.ini"
     ;Include-HGGrid       = "config-include/GridHypergrid.ini"
-
+    ;Include-ASGrid        = "config-include/GridAgentService.ini"
     ; Then choose
     ; config-include/StandaloneCommon.ini.example (if you're in standlone) OR
     ; config-include/GridCommon.ini.example (if you're connected to a grid)
