@@ -253,8 +253,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
         {
-            if (IsLocalGridUser(userID))
-            {
+            //if (IsLocalGridUser(userID))
+           // {
                 // This is not pretty, but it will have to do for now
                 if (m_GridService is BaseInventoryConnector)
                 {
@@ -266,16 +266,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     m_log.DebugFormat("[AgentService INVENTORY BROKER]: GetSystemsFolders redirected to GetSystemFoldersLocal");
                     return GetSystemFoldersLocal(userID);
                 }
-            }
-            else
-            {
-                m_log.ErrorFormat("[AgentServiceInventoryBroker]: GetSystemFolders ERROR this shouldnt need calling {0} call local service for now", userID);
-                return GetSystemFoldersLocal(userID);
+            //}
+           // else
+            //{
+             //   m_log.ErrorFormat("[AgentServiceInventoryBroker]: GetSystemFolders ERROR this shouldnt need calling {0} call local service for now", userID);
+             //   return GetSystemFoldersLocal(userID);
                 //UUID sessionID = GetSessionID(userID);
                 //string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
                 //return m_AgentServiceService.GetSystemFolders(uri, sessionID);
                 //return null;
-            }
+            //}
         }
 
         private Dictionary<AssetType, InventoryFolderBase> GetSystemFoldersLocal(UUID userID)
