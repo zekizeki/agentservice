@@ -859,8 +859,25 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 skelArray.Add(osdRow);
             }
             
+            // Rob now lets add the inventory library to this
+            Dictionary<UUID, InventoryFolderImpl> rootFolders
+                = m_libraryRootFolder.RequestSelfAndDescendentFolders();
+            
+            foreach (InventoryFolderBase folder in rootFolders.Values)
+            {
+                OSDMap osdRow = new OSDMap();
+                osdRow["name"] = OSD.FromString(folder.Name);
+                osdRow["version"] = OSD.FromInteger((int)folder.Version);
+                osdRow["parent_id"] = OSD.FromUUID(folder.ParentID);
+                osdRow["type_default"] = OSD.FromInteger((int)folder.Type);
+                osdRow["folder_id"] = OSD.FromUUID(folder.ID);
+                skelArray.Add(osdRow);
+            }    
+            
             return skelArray;
         }
+        
+
         
         public OSD getRootFolder(UUID agentUUID)
         {    
