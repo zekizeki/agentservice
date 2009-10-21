@@ -1014,9 +1014,29 @@ namespace OpenSim.Grid.AgentDomain.Modules
                     // this is going to break here as we're getting the entire inventory at the moment
                     // we need to filter this to just return the requested folder, this isnt very efficient
                     contents.items.Array.Add(ConvertInventoryItem(invItem, invFetch.owner_id));
+                    
                 }
             }
        
+       		// Rob added this for system folder, quite probably NOT how it should be done
+       		Dictionary<UUID, InventoryFolderImpl> rootFolders
+                = m_libraryRootFolder.RequestSelfAndDescendentFolders();
+            
+            foreach (InventoryFolderImpl folder in rootFolders.Values)
+            {
+                if(folder.ID == invFetch.folder_id)
+                {
+                	if(folder.Items!=null)
+                	{
+                		foreach (InventoryItemBase item in folder.Items.Values)
+                		{
+                			contents.items.Array.Add(ConvertInventoryItem(item, item.Owner));
+                		}
+                	}
+                		
+                }
+                	
+            }    
             
             contents.descendents = contents.items.Array.Count;
             return reply;
