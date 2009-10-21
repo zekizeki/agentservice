@@ -632,6 +632,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
             RAMap["first_name"] = OSD.FromString(storedFirstName); 
             RAMap["last_name"] = OSD.FromString(storedLastName); 
             string capBit = m_uuid_table.getCapForUUID(agentUUID);
+	    
 	    string inventoryResolveCapString = "http://"+ipHostString+":"+ipHostPort+"/agent/inventory_resolver/"+capBit;
 	    RAMap["inventory_resolver_cap"] = OSD.FromString(inventoryResolveCapString);
 	    // [rob] add a cap for the inventory reflector to use
@@ -859,6 +860,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 skelArray.Add(osdRow);
             }
             
+            // TODO remove when Suzy adds the new caps to the viewer
             // Rob now lets add the inventory library to this
             Dictionary<UUID, InventoryFolderImpl> rootFolders
                 = m_libraryRootFolder.RequestSelfAndDescendentFolders();
@@ -867,6 +869,28 @@ namespace OpenSim.Grid.AgentDomain.Modules
             {
                 OSDMap osdRow = new OSDMap();
                 osdRow["name"] = OSD.FromString(folder.Name);
+                osdRow["version"] = OSD.FromInteger((int)folder.Version);
+                osdRow["parent_id"] = OSD.FromUUID(folder.ParentID);
+                osdRow["type_default"] = OSD.FromInteger((int)folder.Type);
+                osdRow["folder_id"] = OSD.FromUUID(folder.ID);
+                skelArray.Add(osdRow);
+            }    
+            
+            return skelArray;
+        }
+        
+        public OSD getLibrarySkeleton()
+        {
+            OSDArray skelArray = new OSDArray();
+                        
+            Dictionary<UUID, InventoryFolderImpl> rootFolders
+                = m_libraryRootFolder.RequestSelfAndDescendentFolders();
+            
+            foreach (InventoryFolderBase folder in rootFolders.Values)
+            {
+                OSDMap osdRow = new OSDMap();
+                osdRow["name"] = OSD.FromString(folder.Name);
+                osdRow["owner"] = OSD.FromUUID(folder.Owner);
                 osdRow["version"] = OSD.FromInteger((int)folder.Version);
                 osdRow["parent_id"] = OSD.FromUUID(folder.ParentID);
                 osdRow["type_default"] = OSD.FromInteger((int)folder.Type);
@@ -908,7 +932,74 @@ namespace OpenSim.Grid.AgentDomain.Modules
             return responseMap;
         }
         
-        
+        public string FetchLibraryDescendentsRequest(string request, string path, string param,OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        {
+            m_log.Debug("[Main.cs]: 	InventoryDescendentsRequest is "+request);
+            
+            // nasty temporary hack here, the linden client falsely identifies the uuid 00000000-0000-0000-0000-000000000000 as a string which breaks us
+            // correctly mark it as a uuid
+            request = request.Replace("<string>00000000-0000-0000-0000-000000000000</string>", "<uuid>00000000-0000-0000-0000-000000000000</uuid>");
+            
+            // another hack <integer>1</integer> results in a System.ArgumentException: Object type System.Int32 cannot be converted to target type: System.Boolean
+            request = request.Replace("<key>fetch_folders</key><integer>0</integer>", "<key>fetch_folders</key><boolean>0</boolean>");
+            request = request.Replace("<key>fetch_folders</key><integer>1</integer>", "<key>fetch_folders</key><boolean>1</boolean>");
+            Hashtable hash = new Hashtable();
+            try
+            {
+                hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
+            }
+            catch (LLSD.LLSDParseException pe)
+            {
+                m_log.Error("[AGENT INVENTORY]: Fetch error: " + pe.Message);
+                m_log.Error("Request: " + request.ToString());
+            }
+            
+            ArrayList foldersrequested = (ArrayList)hash["folders"];
+            
+            string response = "";
+            for (int i = 0; i < foldersrequested.Count; i++)
+            {
+                string inventoryitemstr = "";
+                Hashtable inventoryhash = (Hashtable)foldersrequested[i];
+                
+                LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
+                
+                try{
+                    LLSDHelpers.DeserialiseOSDMap(inventoryhash, llsdRequest);
+                }
+                catch(Exception e)
+                {
+                    m_log.Debug("[CAPS]: caught exception doing OSD deserialize" + e);
+                }
+                LLSDInventoryDescendents reply = FetchLibraryReply(llsdRequest);
+                
+                inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
+                inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
+                inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
+                
+                response += inventoryitemstr;
+            }
+            
+            
+            if (response.Length == 0)
+             {
+                // Ter-guess: If requests fail a lot, the client seems to stop requesting descendants.
+                // Therefore, I'm concluding that the client only has so many threads available to do requests
+                // and when a thread stalls..   is stays stalled.
+                // Therefore we need to return something valid
+                response = "<llsd><map><key>folders</key><array /></map></llsd>";
+            }
+            else
+             {
+                response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
+            }
+            
+            m_log.DebugFormat("[CAPS]: Replying to CAPS fetch inventory request with following xml");
+            m_log.Debug("[CAPS] "+response);
+            
+            return response;
+        }
+
         
         public string webFetchInventoryDescendentsRequest(string request, string path, string param,OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
@@ -978,6 +1069,42 @@ namespace OpenSim.Grid.AgentDomain.Modules
             return response;
         }
         
+        private LLSDInventoryDescendents FetchLibraryReply(LLSDFetchInventoryDescendents invFetch)
+        {
+            LLSDInventoryDescendents reply = new LLSDInventoryDescendents();
+            LLSDInventoryFolderContents contents = new LLSDInventoryFolderContents();
+            //contents.agent_id = m_agentID;
+            contents.owner_id =  m_libraryRootFolder.Owner; // this should be the libary owner ?
+            contents.folder_id = invFetch.folder_id;
+            contents.version = 0;
+            contents.descendents = 0;
+            reply.folders.Array.Add(contents);
+                   
+       		// Rob added this for system folder, quite probably NOT how it should be done
+       		Dictionary<UUID, InventoryFolderImpl> rootFolders
+                = m_libraryRootFolder.RequestSelfAndDescendentFolders();
+            
+            foreach (InventoryFolderImpl folder in rootFolders.Values)
+            {
+                if(folder.ID == invFetch.folder_id)
+                {
+                	if(folder.Items!=null)
+                	{
+                		foreach (InventoryItemBase item in folder.Items.Values)
+                		{
+                			contents.items.Array.Add(ConvertInventoryItem(item, item.Owner));
+                		}
+                	}
+                		
+                }
+                	
+            }    
+            
+            contents.descendents = contents.items.Array.Count;
+            return reply;
+        }
+
+        
         /// <summary>
         /// Construct an LLSD reply packet to a CAPS inventory request
         /// </summary>
@@ -1019,6 +1146,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
             }
        
        		// Rob added this for system folder, quite probably NOT how it should be done
+       		// TODO remove this after suzy adds the new caps to the client
        		Dictionary<UUID, InventoryFolderImpl> rootFolders
                 = m_libraryRootFolder.RequestSelfAndDescendentFolders();
             
@@ -1459,17 +1587,22 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             OSDMap capMap = new OSDMap(); 
             string adPrefix = "http://"+ipHostString+":"+ipHostPort ; 
             capMap["agent/info"] = OSD.FromString(adPrefix+"/cap/agent/info/"+capSufix); 
+        // the cap below is replicated the second with an _ no -'s wanted in future
 	    capMap["agent/inventory-skeleton"] = OSD.FromString(adPrefix+"/agent/inventory/skeleton/"+capSufix);
+	    	capMap["agent/inventory_skeleton"] = OSD.FromString(adPrefix+"/agent/inventory/skeleton/"+capSufix);
+	    	capMap["agent/inventory_library_skeleton"] = OSD.FromString(adPrefix+"/agent/inventory_library/skeleton/"+capSufix);
             capMap["event_queue"] = OSD.FromString(adPrefix+"/cap/event_queue/"+capSufix); 
             capMap["rez_avatar/place"] = OSD.FromString(adPrefix+"/cap/rez_avatar/place/"+capSufix); 
             
             // TODO Rob add the WebFetchInventoryDescendents Cap here 
             capMap["agent/inventory"] = OSD.FromString(adPrefix+"/cap/agent/inventory/"+capSufix);
+            capMap["agent/inventory_library"] = OSD.FromString(adPrefix+"/cap/agent/inventory_library/"+capSufix);
             capMap["agent/test/echo"] = OSD.FromString(adPrefix+"/cap/agent/test/echo/"+capSufix);
             m_log.InfoFormat("WebFetchInventoryDescendents cap url is {0}", adPrefix+"/cap/agent/inventory/"+capSufix);
             
             // TODO Rob need to track and remove this handler on derez
             m_httpServer.AddStreamHandler(new RestStreamHandler("POST", "/cap/agent/inventory/"+capSufix, webFetchInventoryDescendentsRequest));
+            m_httpServer.AddStreamHandler(new RestStreamHandler("POST", "/cap/agent/inventory_library/"+capSufix, FetchLibraryDescendentsRequest));
             
             // NOW TODO add inventory caps so the agent can see them
             // [rob] add caps for the inventory reflector to use
@@ -1859,6 +1992,35 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
 	return responseMap;
         }
         
+        public OSD adGetLibrarySkeleton(string path, OSD request, string endpoint)
+        {
+        m_log.Info("[AGENT DOMAIN]: adGetLibrarySkeleton called");
+	OSDMap responseMap = new OSDMap(); 
+            OSDMap requestMap = (OSDMap)request;
+            
+            // check that this cap is valid
+            string[] pathSegments = path.Split('/'); 
+            int i; 
+            
+            if (pathSegments.Length < 2) 
+             { 
+                m_log.WarnFormat("[Agent Domain]: moveInventory Badly formed seed cap fetch path {0} from endpoint {1}",path,endpoint); 
+                responseMap["connect"] = OSD.FromBoolean(true); 
+                return responseMap; 
+            } 
+            
+            UUID agentUUID = m_uuid_table.getAgentUUIDforCap(pathSegments[4]); 
+            m_log.InfoFormat("[AGENT DOMAIN]: moveInventory  found agent UUID of {0}",agentUUID.ToString());
+            if (agentUUID == UUID.Zero)
+             {
+                m_log.Warn("[AGENT DOMAIN]: Invalid cap");
+                return responseMap;
+              }
+            OSD skel =  getLibrarySkeleton();
+	        responseMap["Skeleton"] = skel;
+	        return responseMap;
+        }
+        
         public OSD moveInventory(string path, OSD request, string endpoint)
         {
             m_log.Info("[AGENT DOMAIN]: moveInventory cap called"); 
@@ -2212,10 +2374,11 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             m_httpServer.AddLLSDHandler("/cap/rez_avatar/place", adRezAvatarPlace);
             m_httpServer.AddLLSDHandler("/cap/rez_avatar/derez",derezLogoutHandler);
 
-	    // David for skeleton
-	    m_httpServer.AddLLSDHandler("/agent/inventory/skeleton",adGetSkeleton);
+	        // For skeletons
+	        m_httpServer.AddLLSDHandler("/agent/inventory/skeleton",adGetSkeleton);
+	        m_httpServer.AddLLSDHandler("/agent/inventory_library/skeleton",adGetLibrarySkeleton);
             
-            // [Rob] for inventory reflector
+            // For inventory reflectors
             m_httpServer.AddLLSDHandler("/agent/inventory_create",createInventory);
             m_httpServer.AddLLSDHandler("/agent/inventory_get",getInventory);
             m_httpServer.AddLLSDHandler("/agent/inventory_update",updateInventory);
