@@ -89,6 +89,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
 	    private UserDataBaseService m_userDataBaseService; // DWL
         private IInterServiceInventoryServices m_interInventoryService;
         private GridInventoryService m_inventoryService;
+        private LibraryRootFolder m_libraryRootFolder;
 
 	// X.509 bypass stuff
         private static bool customXertificateValidation(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
@@ -117,6 +118,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
             m_userDataBaseService = dataBaseServer;
             m_interInventoryService = inventoryService;
             m_regionProfileService = regionProfileService;
+            m_libraryRootFolder = libraryRootFolder;
             ipHostPort = (m_config.HttpPort).ToString();
 	    setupHostNames();
             m_log.InfoFormat("[AGENT DOMAIN]: listening on port {0}",ipHostPort);
@@ -1458,6 +1460,16 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
     	 	capMap["wearables_update_cap"] = OSD.FromString(inventoryReflectCapString);
             
             
+            // TODO rob try adding in the inventory library details
+            // Inventory Library Section
+            Hashtable InventoryLibRootHash = new Hashtable();
+            InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
+            ArrayList InventoryLibRoot = new ArrayList();
+            InventoryLibRoot.Add(InventoryLibRootHash);
+            responseMap["inventory-skel-lib"] = GetInventoryLibrary();
+            responseMap["inventory-lib-root"] = ArrayListToOSDArray(InventoryLibRoot);
+            responseMap["inventory-lib-owner"] = GetLibraryOwner();
+                
             responseMap["capabilities"] = capMap; 
             responseMap["first_name"] = OSD.FromString(agentState.firstName); 
             responseMap["last_name"] = OSD.FromString(agentState.lastName); 
@@ -1466,6 +1478,51 @@ InventoryItemBase locateItem(UUID itemToLocate, UUID folder)
             responseMap["transacted"] = OSD.FromBoolean(true); 
             responseMap["god_level"] = OSD.FromInteger(0); 
             return responseMap; 
+        }
+        
+         protected virtual OSDArray GetInventoryLibrary()
+        {
+            Dictionary<UUID, InventoryFolderImpl> rootFolders
+                = m_libraryRootFolder.RequestSelfAndDescendentFolders();
+            ArrayList folderHashes = new ArrayList();
+
+            foreach (InventoryFolderBase folder in rootFolders.Values)
+            {
+                Hashtable TempHash = new Hashtable();
+                TempHash["name"] = folder.Name;
+                TempHash["parent_id"] = folder.ParentID.ToString();
+                TempHash["version"] = (Int32)folder.Version;
+                TempHash["type_default"] = (Int32)folder.Type;
+                TempHash["folder_id"] = folder.ID.ToString();
+                folderHashes.Add(TempHash);
+            }
+
+            return ArrayListToOSDArray(folderHashes);
+        }
+        
+         protected virtual OSDArray GetLibraryOwner()
+        {
+            //for now create random inventory library owner
+            Hashtable TempHash = new Hashtable();
+            TempHash["agent_id"] = "11111111-1111-0000-0000-000100bba000";
+            ArrayList inventoryLibOwner = new ArrayList();
+            inventoryLibOwner.Add(TempHash);
+            return ArrayListToOSDArray(inventoryLibOwner);
+        }
+        
+        public OSDArray ArrayListToOSDArray(ArrayList arrlst)
+        {
+            OSDArray llsdBack = new OSDArray();
+            foreach (Hashtable ht in arrlst)
+            {
+                OSDMap mp = new OSDMap();
+                foreach (DictionaryEntry deHt in ht)
+                {
+                    mp.Add((string)deHt.Key, OSDString.FromObject(deHt.Value));
+                }
+                llsdBack.Add(mp);
+            }
+            return llsdBack;
         }
 
    public OSD createInventory(string path, OSD request, string endpoint)
