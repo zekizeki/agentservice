@@ -890,7 +890,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
             {
                 OSDMap osdRow = new OSDMap();
                 osdRow["name"] = OSD.FromString(folder.Name);
-                osdRow["owner"] = OSD.FromUUID(folder.Owner);
+                osdRow["owner_id"] = OSD.FromUUID(folder.Owner);
                 osdRow["version"] = OSD.FromInteger((int)folder.Version);
                 osdRow["parent_id"] = OSD.FromUUID(folder.ParentID);
                 osdRow["type_default"] = OSD.FromInteger((int)folder.Type);
