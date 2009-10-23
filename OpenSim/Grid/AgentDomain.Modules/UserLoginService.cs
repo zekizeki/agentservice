@@ -862,7 +862,8 @@ namespace OpenSim.Grid.AgentDomain.Modules
             
             // TODO remove when Suzy adds the new caps to the viewer
             // Rob now lets add the inventory library to this
-            Dictionary<UUID, InventoryFolderImpl> rootFolders
+           
+           /* Dictionary<UUID, InventoryFolderImpl> rootFolders
                 = m_libraryRootFolder.RequestSelfAndDescendentFolders();
             
             foreach (InventoryFolderBase folder in rootFolders.Values)
@@ -874,7 +875,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 osdRow["type_default"] = OSD.FromInteger((int)folder.Type);
                 osdRow["folder_id"] = OSD.FromUUID(folder.ID);
                 skelArray.Add(osdRow);
-            }    
+            }*/    
             
             return skelArray;
         }
@@ -1146,7 +1147,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
             }
        
        		// Rob added this for system folder, quite probably NOT how it should be done
-       		// TODO remove this after suzy adds the new caps to the client
+       		/* TODO remove this after suzy adds the new caps to the client
        		Dictionary<UUID, InventoryFolderImpl> rootFolders
                 = m_libraryRootFolder.RequestSelfAndDescendentFolders();
             
@@ -1164,7 +1165,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 		
                 }
                 	
-            }    
+            } */   
             
             contents.descendents = contents.items.Array.Count;
             return reply;
