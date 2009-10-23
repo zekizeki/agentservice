@@ -996,7 +996,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
             }
             
-            m_log.DebugFormat("[CAPS]: Replying to CAPS fetch inventory request with following xml");
+            m_log.Debug("[CAPS]: Replying to CAPS FetchLibraryDescendentsRequest with following xml");
             m_log.Debug("[CAPS] "+response);
             
             return response;
@@ -1005,7 +1005,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
         
         public string webFetchInventoryDescendentsRequest(string request, string path, string param,OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_log.Debug("[Main.cs]: 	InventoryDescendentsRequest is "+request);
+            m_log.Debug("[AGENT SERVICE]:webFetchInventoryDescendentsRequest is "+request);
             
             // nasty temporary hack here, the linden client falsely identifies the uuid 00000000-0000-0000-0000-000000000000 as a string which breaks us
             // correctly mark it as a uuid
@@ -1065,7 +1065,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
                 response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
             }
             
-            m_log.DebugFormat("[CAPS]: Replying to CAPS fetch inventory request with following xml");
+            m_log.Debug("[CAPS]: Replying to CAPS webFetchInventoryDescendentsRequest with following xml");
             m_log.Debug("[CAPS] "+response);
             
             return response;
