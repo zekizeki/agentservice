@@ -882,6 +882,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
         
         public OSD getLibrarySkeleton()
         {
+        	 m_log.Debug("[UserLoginService.cs]: 	getLibrarySkeleton");
             OSDArray skelArray = new OSDArray();
                         
             Dictionary<UUID, InventoryFolderImpl> rootFolders
@@ -935,7 +936,7 @@ namespace OpenSim.Grid.AgentDomain.Modules
         
         public string FetchLibraryDescendentsRequest(string request, string path, string param,OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_log.Debug("[Main.cs]: 	InventoryDescendentsRequest is "+request);
+            m_log.Debug("[UserLoginService.cs]: FetchLibraryDescendentsRequest is "+request);
             
             // nasty temporary hack here, the linden client falsely identifies the uuid 00000000-0000-0000-0000-000000000000 as a string which breaks us
             // correctly mark it as a uuid
